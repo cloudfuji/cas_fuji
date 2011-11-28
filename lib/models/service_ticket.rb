@@ -4,6 +4,8 @@ class ServiceTicket
   # Services MUST be able to accept ServiceTickets
   # up to 32 characters, but it's RECOMMENDED they
   # accept up to 256 characters
+  set_table_name "casfuji_st"
+
   attr_accessor :name
   
   def valid?

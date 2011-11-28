@@ -1,7 +1,5 @@
 # TODO: Prefix all urls with mounting point
 class CasFuji::App < Sinatra::Base
-
-  set :database, 'sqlite://db/foo.sqlite'
   
   before { set_request_variables! }
 
