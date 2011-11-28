@@ -2,6 +2,13 @@ CasFuji
 =======
 Bushido's Implementation of the CAS server protocol
 
+TODO
+====
+
+  * Connect CasFuji to ActiveRecord to persist tickets to the database
+  * Load custom authenticators from config.yml and use them
+  * Allow for the app to be mapped at any sub-path
+  * Allow for the views to be overridden from outside
 
 Install
 =======
@@ -33,7 +40,7 @@ Making Your Changes
   * Start a feature/bugfix branch
   * Commit and push until you are happy with your contribution
   * Make sure to add tests for it. This is important so we don't break it in a future version unintentionally.
-  * After making your changes, be sure to run the Mailgun RSpec specs to make sure everything works.
+  * After making your changes, be sure to run the CasFuji RSpec specs to make sure everything works.
   * Submit your change as a Pull Request and update the GitHub issue to let us know it is ready for review.
 
 Authors
