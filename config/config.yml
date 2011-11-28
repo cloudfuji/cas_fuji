@@ -1,0 +1,53 @@
+:base: &base
+  :server:
+    :gem: webrick
+    :port: 443
+    :ssl_cert: ./lib/misc/demo.crt
+    :ssl_key: ./lib/misc/demo.key
+  :cas:
+    :permanent_id_column: permanent_id
+    :extra_attributes: [email, first_name, last_name, locale]
+  :authenticators:
+    class: DeviseAuth
+    source: ./lib/devise_auth.rb
+  :organization:
+    :name: Your Org Name
+    :tagline: The name on the default login template
+  :default_locale: en
+  :log:
+    :file: ./log/cas_fuji.log
+    :level: DEBUG
+    db_log: ./log/cas_fuji_db.log
+  :quiet: false
+
+test:
+  <<: *base
+  :database:
+    adapter: postgresql
+    database: cas_fuji_test
+    username: 
+    password: 
+    pool: 5
+    timeout: 5000
+  :quiet: true
+
+development:
+  <<: *base
+  :database:
+    adapter: postgresql
+    database: cas_fuji_development
+    username: 
+    password: 
+    pool: 5
+    timeout: 5000
+
+production:
+  <<: *base
+  :database:
+    adapter: postgresql
+    database: cas_fuji_production
+    username: 
+    password: 
+    pool: 5
+    timeout: 5000
+
