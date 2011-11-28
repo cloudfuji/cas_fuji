@@ -9,6 +9,7 @@ gem 'nokogiri'
 gem 'pg', '>=0.10.0'
 gem 'sqlite3-ruby', :require => 'sqlite3'
 gem 'activerecord'
+gem 'sinatra-activerecord'
 
 # Default random generator
 gem 'crypt-isaac'
@@ -39,7 +40,6 @@ end
 
 group :test do
   gem 'cover_me', '>= 1.0.0.rc6'
-  gem 'capybara', '1.0.0'
   gem 'capybara-webkit'
   gem 'rspec'
   gem 'rspec-prof'
