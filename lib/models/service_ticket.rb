@@ -1,9 +1,10 @@
 # CAS 3.1
-class ServiceTicket
+class ServiceTicket < ActiveRecord::Base
   # begins with "ST-"
   # Services MUST be able to accept ServiceTickets
   # up to 32 characters, but it's RECOMMENDED they
   # accept up to 256 characters
+  include Consumable
   set_table_name "casfuji_st"
 
   attr_accessor :name

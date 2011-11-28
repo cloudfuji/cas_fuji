@@ -1,6 +1,7 @@
 # CAS 3.5 
 class LoginTicket < ActiveRecord::Base
   # begins with "LT-"
+  include Consumable
   set_table_name "casfuji_lt"
   
   def valid?
