@@ -2,8 +2,7 @@ require 'sinatra'
 require 'builder'
 require 'cgi'
 require 'ap'
-require 'active_record'
-
+require 'sinatra/activerecord'
 # Load app config
 require './lib/cas_fuji/config'
 

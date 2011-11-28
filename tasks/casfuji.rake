@@ -1,4 +1,8 @@
+$LOAD_PATH << './lib'
+
 require 'logger'
+require 'cas_fuji'
+require 'sinatra/activerecord/rake'
 
 namespace :casfuji do
   namespace :db do
