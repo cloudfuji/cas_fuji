@@ -1,0 +1,24 @@
+<% if not @errors.empty? %>
+<% @errors.each do |error| %>
+<%= error %><br />
+<% end %>
+<% end %>
+
+<% if not @messages.empty? %>
+<% @messages.each do |message| %>
+<%= message %><br />
+<% end %>
+<% end %>
+
+<% if not @user  %>
+please login
+<% end %>
+
+<form action="/login" method="post">
+  <input id="username" />
+  <input id="password" />
+  <input id="lt" />
+  <% if @service %>
+  <input id="service" value="<%= CGI.escape(@service) %>" />
+  <% end %>
+</form>
