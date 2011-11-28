@@ -1,3 +1,5 @@
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '.')
+
 require 'sinatra'
 require 'builder'
 require 'uuid'
@@ -5,11 +7,13 @@ require 'cgi'
 require 'ap'
 require 'sinatra/activerecord'
 
+require 'cas_fuji/exception'
+
 # Load app config
-require './lib/cas_fuji/config'
+require 'cas_fuji/config'
 
 # Load sinatra app
-require './lib/cas_fuji/app'
+require 'cas_fuji/app'
 
 require 'consumable'
 
