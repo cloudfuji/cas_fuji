@@ -17,6 +17,7 @@ class CasFuji::App < Sinatra::Base
     redirect append_ticket_to_url(@service, "valid")            if params[:gateway] and current_user and @service
     redirect @service                                           if params[:gateway]
     @messages << "you're already logged in as #{current_user}!" if current_user
+    @login_ticket_name = LoginTicket.generate.name
 
     erb 'login.html'.to_sym
   end
