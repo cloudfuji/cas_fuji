@@ -39,6 +39,7 @@ end
 
 group :test do
   gem 'cover_me', '>= 1.0.0.rc6'
+  gem 'capybara', '1.0.0'
   gem 'capybara-webkit'
   gem 'rspec'
   gem 'rspec-prof'

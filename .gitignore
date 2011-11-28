@@ -1,0 +1,4 @@
+.rvmrc
+coverage.data
+*.db
+db/*.sqlite
