@@ -40,7 +40,10 @@ describe 'CasProtocol 2.2 /login as a credential acceptor [POST]' do
     end
 
     it 'must *not* redirect the user to the service immediately after success authentication if the warn param is present' do
-      post '/login', {:service => @valid_service_target, :username => @valid_username, :password => @valid_password, :lt => @valid_login_ticket, :warn => true}
+
+      LoginTicket.should_receive(:consume).with(@valid_login_ticket)
+      
+      post '/login', {:service => @valid_service_target, :username => @valid_username, :password => @valid_password, :lt => @valid_login_ticket, :warn => true}, {"REMOTE_HOST" => "Bushido.local"}
       last_response.body.should include("you are about to be redirected to #{CGI.unescape(@valid_service_target)}, is that ok?")
     end
   end

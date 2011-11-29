@@ -1,6 +1,6 @@
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../lib/')
 
-ENV['RACK_ENV'] ||= "test" 
+ENV['RACK_ENV'] ||= "test"
 
 require 'rspec'
 require 'rack/test'

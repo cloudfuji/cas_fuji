@@ -8,19 +8,24 @@ class ServiceTicket < ActiveRecord::Base
   set_table_name "casfuji_st"
 
   def self.valid?(service, username, ticket_name)
-    ServiceTicket.find(:all,
+    st = ServiceTicket.find(:all,
       :conditions => {
         :name     => ticket_name,
         :username => username,
         :service  => service,
         :consumed => false})
+    puts "SERVICE TICKET STUFF #{ServiceTicket.all.inspect}"
+    return st.first if st.count > 0
+    return nil
   end
 
-  def self.generate(service, username)
-    st = ServiceTicket.create(
-      :name => ("ST-".concat ::UUID.new.generate),
-      :username => username,
-      :service  => service)
+  def self.generate(service, permanent_id, username, client_hostname)
+    ServiceTicket.create(
+      :name            => ("ST-".concat ::UUID.new.generate),
+      :permanent_id    => permanent_id,
+      :username        => username,
+      :service         => service,
+      :client_hostname => client_hostname)
   end
 
   def service_valid?(service)

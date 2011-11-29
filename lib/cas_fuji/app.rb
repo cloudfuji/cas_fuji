@@ -33,7 +33,7 @@ class CasFuji::App < Sinatra::Base
     
     halt(401, erb('login.html'.to_sym))                      if not @errors.empty?
 
-    if @service
+    if @service and @errors.empty?
       st = ServiceTicket.generate(@service, @username)
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
       redirect append_ticket_to_url(@service, st.name)
