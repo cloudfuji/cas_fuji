@@ -1,4 +1,4 @@
-class CasFuji
+module CasFuji
   class << self
     extend ActiveSupport::Memoizable
 

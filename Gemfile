@@ -39,6 +39,7 @@ group :development, :test do
 end
 
 group :test do
+  gem 'database_cleaner'
   gem 'cover_me', '>= 1.0.0.rc6'
   gem 'capybara-webkit'
   gem 'rspec'

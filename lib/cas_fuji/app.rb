@@ -17,7 +17,7 @@ class CasFuji::App < Sinatra::Base
     redirect append_ticket_to_url(@service, "valid")            if params[:gateway] and current_user and @service
     redirect @service                                           if params[:gateway]
     @messages << "you're already logged in as #{current_user}!" if current_user
-    @login_ticket_name = LoginTicket.generate.name
+    @login_ticket_name = LoginTicket.generate(@client_hostname).name
 
     erb 'login.html'.to_sym
   end
@@ -26,13 +26,23 @@ class CasFuji::App < Sinatra::Base
   post '/login' do
     requires_params({:username => "Username", :password => "Password", :lt => "Login ticket"})
 
-    authenticate_user!(params[:username], params[:password])
+    # mark the login ticket as consumed if it's a valid login ticket
+    LoginTicket.consume(@lt) if @lt
     
-    halt(401, erb('login.html'.to_sym))              if not @errors.empty?
-    halt(200, erb('redirect_warn.html'.to_sym))      if @service and params[:warn]
-    redirect append_ticket_to_url(@service, "valid") if @service
+    authenticate_user!(params[:username], params[:password]) if not @errors.empty?
+    
+    halt(401, erb('login.html'.to_sym))                      if not @errors.empty?
+
+    if @service
+      st = ServiceTicket.generate(@service, @username)
+      halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
+      redirect append_ticket_to_url(@service, st.name)
+    end
 
     @messages << "Successfully logged in"
+
+    # TODO check for old ticket and use that instead
+    @login_ticket_name = LoginTicket.generate(@client_hostname).name
     halt(200, erb('login.html'.to_sym))
   end
 
@@ -100,14 +110,18 @@ class CasFuji::App < Sinatra::Base
   end
 
   def authenticate_user!(username, password)
-    # TODO: Implement your authentication logic here
+    CasFuji.config[:authenticators].each do |authenticator|
+      return true if authenticator["class"].constantize.validate(username, password)
+    end
+    @errors << "Invalid username and password"
   end
   
   # Initialize and massage the variables ahead of time
   def set_request_variables!
     current_user
-
+    
     raw_service             = params[:service]
+    @client_hostname = @env['HTTP_X_FORWARDED_FOR'] || @env['REMOTE_HOST'] || @env['REMOTE_ADDR']
     @service                = CGI.unescape(raw_service) if raw_service
     escaped_service         = CGI.escape(@service)      if @service
     @service_encoding_valid = (escaped_service == raw_service)
@@ -118,11 +132,11 @@ class CasFuji::App < Sinatra::Base
 
     @username = params[:username]
     @password = params[:password]
-    @lt = LoginTicket.find_by_name(params[:lt])
+    @lt = params[:lt]
 
     @errors   = []
     @messages = []
-
+    
     @errors << "Sorry, that doesn't look like a valid service param" if @service and not @service_encoding_valid
   end
 end

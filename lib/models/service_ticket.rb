@@ -7,14 +7,20 @@ class ServiceTicket < ActiveRecord::Base
   include Consumable
   set_table_name "casfuji_st"
 
-  attr_accessor :name
-  
-  def valid?
-    @name == "ST-test_service_ticket"
+  def self.valid?(service, username, ticket_name)
+    ServiceTicket.find(:all,
+      :conditions => {
+        :name     => ticket_name,
+        :username => username,
+        :service  => service,
+        :consumed => false})
   end
 
-  def username
-    "valid_username"
+  def self.generate(service, username)
+    st = ServiceTicket.create(
+      :name => ("ST-".concat ::UUID.new.generate),
+      :username => username,
+      :service  => service)
   end
 
   def service_valid?(service)
@@ -22,11 +28,4 @@ class ServiceTicket < ActiveRecord::Base
     service == "http://target-service.com/service_url"
   end
 
-  def self.find_by_name(name)
-    return nil unless name
-
-    ticket = self.new
-    ticket.name = name
-    ticket
-  end
 end
