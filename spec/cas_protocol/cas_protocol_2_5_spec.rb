@@ -22,10 +22,15 @@ describe 'CasProtocol 2.5 /serviceValidate' do
     @no_session = {}
     @valid_service_target = CGI.escape('http://target-service.com/service_url')
     @valid_service_uri    = Addressable::URI.parse('http://target-service.com/service_url')
+    @valid_permanent_id = "valid_permanent_id"
     @valid_username = "valid_username"
     @valid_password = "valid_password"
     @valid_login_ticket = "test_login_ticket"
-    @valid_service_ticket = "ST-test_service_ticket"
+    @client_hostname = "Bushido.local"
+
+    st = ServiceTicket.generate(@valid_service_target, @valid_permanent_id, @client_hostname)
+    
+    @valid_service_ticket = st.name
 
     @invalid_service_target = CGI.escape("http://invalid-service-target.com")
     @invalid_service_uri    = Addressable::URI.parse('http://invalid-service-target.com/service_url')
@@ -42,8 +47,7 @@ describe 'CasProtocol 2.5 /serviceValidate' do
       get '/serviceValidate', {:service => @valid_service_target, :ticket => @valid_service_ticket}
 
       xml = Nokogiri.XML(response.body)
-
-      xml.xpath('/serviceResponse/authenticationSuccess/user').inner_text.should == @valid_username
+      xml.xpath('/serviceResponse/authenticationSuccess/user').inner_text.should == @valid_permanent_id
     end
 
     it 'checks the validity of a invalid service ticket' do
@@ -69,11 +73,11 @@ describe 'CasProtocol 2.5 /serviceValidate' do
 
     it 'must have a valid service param' do
       get '/serviceValidate', {:service => @invalid_service_target, :ticket => @valid_service_ticket}
-      puts response.body.inspect
 
       xml = Nokogiri.XML(response.body)
 
       node = xml.xpath('/serviceResponse/authenticationFailure')
+
       node.attr('code').inner_text.should == 'INVALID_SERVICE'
       node.inner_text.should include("Invalid service")
 

@@ -22,10 +22,15 @@ describe 'CasProtocol 2.4 /validate' do
     @no_session = {}
     @valid_service_target = CGI.escape('http://target-service.com/service_url')
     @valid_service_uri    = Addressable::URI.parse('http://target-service.com/service_url')
+    @valid_permanent_id = "valid_permanent_id"
     @valid_username = "valid_username"
     @valid_password = "valid_password"
     @valid_login_ticket = "test_login_ticket"
-    @valid_service_ticket = "test_service_ticket"
+    @client_hostname = "Bushido.local"
+    
+    st = ServiceTicket.generate(@valid_service_target, @valid_permanent_id, @client_hostname)
+    
+    @valid_service_ticket = st.name
 
     @invalid_service_target = nil
     @invalid_service_uri    = nil
@@ -62,9 +67,11 @@ describe 'CasProtocol 2.4 /validate' do
   context '2.4.2 Response' do
     context 'on service ticket validation success' do
       it 'must return yes<LF>username<LF>' do
+        
+        
         get '/validate', {:service => @valid_service_target, :ticket => @valid_service_ticket}
-
-        response.body.should =~ /yes<LF>#{@valid_username}<LF>/
+        
+        response.body.should =~ /yes<LF>#{@valid_permanent_id}<LF>/
       end
     end
 
