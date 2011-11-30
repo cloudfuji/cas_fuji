@@ -6,7 +6,6 @@ TODO
 ====
 
   * Connect CasFuji to ActiveRecord to persist tickets to the database
-  * Load custom authenticators from config.yml and use them
   * Allow for the app to be mapped at any sub-path
   * Allow for the views to be overridden from outside
 
@@ -25,7 +24,7 @@ To install it standalone, run:
     shotgun
 
 and visit https://localhost:9393/
-    
+
 
 Specs/Test
 ==========
