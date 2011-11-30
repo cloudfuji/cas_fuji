@@ -11,7 +11,6 @@ class CreateInitialStructure < ActiveRecord::Migration
 
     create_table 'casfuji_st', :force => true do |t|
       t.string    'name',              :null => false
-      t.string    'username',          :null => false
       t.text      'service',           :null => false
       t.timestamp 'created_on',        :null => false
       t.datetime  'consumed',          :null => true
