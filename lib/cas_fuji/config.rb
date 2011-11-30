@@ -15,7 +15,7 @@ module CasFuji
     end
 
     def config
-      YAML.load(render_config_file)[ENV["RACK_ENV"]]
+      YAML.load(render_config_file)[ENV["RACK_ENV"] || "development"]
     end
 
     memoize :config
