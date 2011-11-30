@@ -25,6 +25,7 @@ end
 require 'cas_fuji/app'
 
 require 'consumable'
+require 'ticket'
 
 # Require all of the models
 Dir["#{Dir.pwd}/lib/models/**/*.rb"].reverse.each { |file| require file }

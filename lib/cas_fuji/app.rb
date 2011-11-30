@@ -1,5 +1,6 @@
 # TODO: Prefix all urls with mounting point
 class CasFuji::App < Sinatra::Base
+  set :activerecord_logger, nil
   
   before { set_request_variables! }
 
@@ -14,7 +15,7 @@ class CasFuji::App < Sinatra::Base
 
   # CAS 2.1
   get '/login' do
-    redirect append_ticket_to_url(@service, "valid")            if params[:gateway] and current_user and @service
+    redirect self.class.append_ticket_to_url(@service, "valid") if params[:gateway] and current_user and @service
     redirect @service                                           if params[:gateway]
     @messages << "you're already logged in as #{current_user}!" if current_user
     @login_ticket_name = LoginTicket.generate(@client_hostname).name
@@ -29,14 +30,15 @@ class CasFuji::App < Sinatra::Base
     # mark the login ticket as consumed if it's a valid login ticket
     LoginTicket.consume(@lt) if @lt
     
-    permanent_id = authenticate_user!(params[:username], params[:password]) if @errors.empty?
+    permanent_id = self.class.authenticate_user!(params[:username], params[:password]) if @errors.empty?
+    @errors << "Invalid username and password" if permanent_id.nil?
 
     halt(401, erb('login.html'.to_sym)) if not @errors.empty?
 
     if @service and @errors.empty?
       st = ServiceTicket.generate(@service, permanent_id, @client_hostname)
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
-      redirect append_ticket_to_url(@service, st.name)
+      redirect self.class.append_ticket_to_url(@service, st.name)
     end
 
     @messages << "Successfully logged in"
@@ -71,12 +73,13 @@ class CasFuji::App < Sinatra::Base
     @errors = [400, "INVALID_REQUEST", "Ticket is required"]  if @raw_ticket.nil?
 
     # Case-3 If ticket isn't found or has been consumed
-    @errors = [401, "INVALID_TICKET",  "Invalid ticket"]      if @errors.empty? && (!valid_ticket?)
+    @errors = [401, "INVALID_TICKET",  "Invalid ticket"]      if @errors.empty? and not self.class.valid_ticket?(@ticket)
 
-    # Case-4 If service encoding isn't valid or if ticket doesnt correspond to service
-    @errors = [401, "INVALID_SERVICE", "Invalid service"]     if @errors.empty? && (invalid_service_encoding? || ticket_with_invalid_service?)
+    # Case-4 If service encoding isn't valid or if ticket doesn't correspond to service
+    @errors = [401, "INVALID_SERVICE", "Invalid service"]     if @errors.empty? and (not @service_encoding_valid or not @ticket.service_valid?(@service)) 
 
     halt(200, builder('service_validate_success.xml'.to_sym)) if @errors.empty?
+
     halt(@errors.first, builder('service_validate_failure.xml'.to_sym))
   end
 
@@ -92,13 +95,35 @@ class CasFuji::App < Sinatra::Base
     raise CasFuji::UnimplementedError
   end
 
-  private
-
   ## ============================================================
   ## 
   ## Helpers
   ## 
   ## ============================================================
+  class << self
+    def append_ticket_to_url(url, service_ticket)
+      uri = ::Addressable::URI.parse(url)
+      uri.query_values = {"ticket" => service_ticket}
+      uri.to_s
+    end
+
+    def authenticate_user!(username, password)
+      CasFuji.config[:authenticators].each do |authenticator|
+        permanent_id = authenticator["class"].constantize.validate(username, password)
+        return permanent_id if permanent_id
+      end
+
+      return nil
+    end
+
+    def valid_ticket?(ticket)
+      # Will return false if ticket is nil or has been consumed
+      ticket.try(:consumed?) == false
+    end
+  end
+
+  private
+
   def requires_params(params)
     params.each_pair do |param_symbol, human_name|
       @errors << "#{human_name} is required" unless self.instance_variable_get("@#{param_symbol}")
@@ -109,46 +134,13 @@ class CasFuji::App < Sinatra::Base
     # TODO: Implement how to retrieve the current user based off of cookie/ticket/etc.
     session[:user] if not params[:renew]
   end
-
-  def append_ticket_to_url(url, service_ticket)
-    uri = ::Addressable::URI.parse(url)
-    uri.query_values = {"ticket" => service_ticket}
-    uri.to_s
-  end
-
-  def authenticate_user!(username, password)
-    CasFuji.config[:authenticators].each do |authenticator|
-      permanent_id = authenticator["class"].constantize.validate(username, password)
-      return permanent_id if permanent_id
-    end
-    @errors << "Invalid username and password"
-  end
-
-  def invalid_service_encoding?
-    @service_encoding_valid == false
-  end
-
-  def existing_ticket?
-    !@raw_ticket.nil? && !@ticket.nil?
-  end
-
-  def valid_ticket?
-    existing_ticket? && @ticket.not_consumed?
-  end
-  
-  def ticket_with_invalid_service?
-    puts "TICKET SERVICE #{@service}"
-    !(valid_ticket? && @ticket.service_valid?(@service))
-  end
   
   # Initialize and massage the variables ahead of time
   def set_request_variables!
-    current_user
-    
     raw_service             = params[:service]
     @raw_ticket             = params[:ticket]
 
-    @client_hostname = @env['HTTP_X_FORWARDED_FOR'] || @env['REMOTE_HOST'] || @env['REMOTE_ADDR']
+    @client_hostname        = @env['HTTP_X_FORWARDED_FOR'] || @env['REMOTE_HOST'] || @env['REMOTE_ADDR']
     @service                = CGI.unescape(raw_service) if raw_service
     escaped_service         = CGI.escape(@service)      if @service
     @service_encoding_valid = (escaped_service == raw_service)

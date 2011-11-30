@@ -45,3 +45,5 @@ RSpec.configure do |config|
     DatabaseCleaner.clean
   end
 end
+
+ActiveRecord::Base.logger = nil

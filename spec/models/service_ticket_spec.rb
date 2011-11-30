@@ -34,22 +34,6 @@ describe ServiceTicket do
     end
   end
 
-  describe "not_consumed?" do
-    it "should return true if it's not been consumed" do
-      @service_ticket.not_consumed?.should be_true
-    end
-
-    it "should return false if it's been consumed" do
-      st = ServiceTicket.generate(
-        @valid_service,
-        @valid_permanent_id,
-        @client_hostname)
-      st.consume!
-
-      st.not_consumed?.should be_false
-    end
-  end
-
   describe "consumed?" do
     it "should should return false if it's not been consumed" do
       @service_ticket.consumed?.should be_false

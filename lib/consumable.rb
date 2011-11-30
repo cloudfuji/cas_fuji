@@ -18,6 +18,7 @@ module Consumable
 
         expired_tickets_count = count(:conditions => conditions)
 
+        # Do we have a global $LOG object, or is this just leftover?
         $LOG.debug("Destroying #{expired_tickets_count} expired #{self.name.demodulize}"+
           "#{'s' if expired_tickets_count > 1}.") if expired_tickets_count > 0
 
