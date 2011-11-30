@@ -15,7 +15,6 @@ class LoginTicket < ActiveRecord::Base
   
   def self.generate(client_hostname)
     LoginTicket.create(:name => ("LT-".concat ::UUID.new.generate),
-      :client_hostname => client_hostname,
-      :consumed => false)
+      :client_hostname => client_hostname)
   end
 end
