@@ -153,7 +153,7 @@ class CasFuji::App < Sinatra::Base
     escaped_service         = CGI.escape(@service)      if @service
     @service_encoding_valid = (escaped_service == raw_service)
 
-    @ticket  = CasFuji::Models::ServiceTicket.find_by_name(@raw_ticket)
+    @ticket  = ::CasFuji::Models::ServiceTicket.find_by_name(@raw_ticket)
     @pgt_url = params[:pgt_url]
     @renew   = params[:renew]
 
