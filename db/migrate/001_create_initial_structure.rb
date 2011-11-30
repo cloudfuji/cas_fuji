@@ -3,26 +3,25 @@ class CreateInitialStructure < ActiveRecord::Migration
     # Oracle table names cannot exceed 30 chars...
     # See http://code.google.com/p/rubycas-server/issues/detail?id=15
     create_table 'casfuji_lt', :force => true do |t|
-      t.string    'ticket',          :null => false
+      t.string    'name',            :null => false
       t.timestamp 'created_on',      :null => false
       t.datetime  'consumed',        :null => true
       t.string    'client_hostname', :null => false
     end
 
     create_table 'casfuji_st', :force => true do |t|
-      t.string    'ticket',            :null => false
+      t.string    'name',              :null => false
       t.text      'service',           :null => false
       t.timestamp 'created_on',        :null => false
       t.datetime  'consumed',          :null => true
       t.string    'client_hostname',   :null => false
       t.string    'permanent_id',      :null => false
-      t.string    'type',              :null => false
       t.integer   'granted_by_pgt_id', :null => true
       t.integer   'granted_by_tgt_id', :null => true
     end
 
     create_table 'casfuji_tgt', :force => true do |t|
-      t.string    'ticket',           :null => false
+      t.string    'name',           :null => false
       t.timestamp 'created_on',       :null => false
       t.string    'client_hostname',  :null => false
       t.string    'permanent_id',     :null => false
@@ -30,7 +29,7 @@ class CreateInitialStructure < ActiveRecord::Migration
     end
 
     create_table 'casfuji_pgt', :force => true do |t|
-      t.string    'ticket',            :null => false
+      t.string    'name',            :null => false
       t.timestamp 'created_on',        :null => false
       t.string    'client_hostname',   :null => false
       t.string    'iou',               :null => false

@@ -15,10 +15,11 @@ please login
 <% end %>
 
 <form action="/login" method="post">
-  <input id="username" />
-  <input id="password" />
-  <input id="lt" />
+  <input id="username" name="username" value="test_username" />
+  <input id="password" name="password" value="test_password" />
+  <input id="lt"       name="lt"       value="<%= @login_ticket_name %>" />
   <% if @service %>
   <input id="service" value="<%= CGI.escape(@service) %>" />
   <% end %>
+  <input type="submit" value="submit">
 </form>

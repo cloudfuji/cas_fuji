@@ -1,17 +1,20 @@
 # CAS 3.5 
-class LoginTicket
+class LoginTicket < ActiveRecord::Base
   # begins with "LT-"
-  attr_accessor :name
+  include Consumable
+  set_table_name "casfuji_lt"
   
-  def valid?
-    @name == "LT-test_service_ticket"
+  def self.valid?(login_ticket_name)
+    LoginTicket.find_by_name(login_ticket_name)
   end
 
-  def self.find_by_name(name)
-    return nil unless name
-
-    login_ticket = self.new
-    login_ticket.name = name
-    login_ticket
+  def self.consume(login_ticket_name)
+    login_ticket = LoginTicket.valid?(login_ticket_name)
+    login_ticket.consume! if not login_ticket.nil?
+  end
+  
+  def self.generate(client_hostname)
+    LoginTicket.create(:name => ("LT-".concat ::UUID.new.generate),
+      :client_hostname => client_hostname)
   end
 end

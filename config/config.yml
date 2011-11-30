@@ -8,8 +8,8 @@
     :permanent_id_column: permanent_id
     :extra_attributes: [email, first_name, last_name, locale]
   :authenticators:
-    class: DeviseAuth
-    source: ./lib/devise_auth.rb
+    - class: CasFuji::Authenticators::TestAuth
+      # source: lib/test_auth.rb
   :organization:
     :name: Your Org Name
     :tagline: The name on the default login template

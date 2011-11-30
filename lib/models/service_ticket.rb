@@ -1,29 +1,29 @@
 # CAS 3.1
-class ServiceTicket
+class ServiceTicket < ActiveRecord::Base
   # begins with "ST-"
   # Services MUST be able to accept ServiceTickets
   # up to 32 characters, but it's RECOMMENDED they
   # accept up to 256 characters
-  attr_accessor :name
-  
-  def valid?
-    @name == "ST-test_service_ticket"
+  include Consumable
+  set_table_name "casfuji_st"
+
+  def consumed?
+    not self.consumed.nil?
   end
 
-  def username
-    "valid_username"
+  def not_consumed?
+    !self.consumed?
   end
 
   def service_valid?(service)
-    puts "#{service} == #{'http://target-service.com/service_url'}"
-    service == "http://target-service.com/service_url"
+    self.service == CGI.escape(service)
   end
 
-  def self.find_by_name(name)
-    return nil unless name
-
-    ticket = self.new
-    ticket.name = name
-    ticket
+  def self.generate(service, permanent_id, client_hostname)
+    ServiceTicket.create(
+      :name            => ("ST-".concat ::UUID.new.generate),
+      :permanent_id    => permanent_id,
+      :service         => service,
+      :client_hostname => client_hostname)
   end
 end
