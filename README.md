@@ -46,6 +46,7 @@ Authors
 =======
 
   * [Sean Grove](https://github.com/sgrove) (sean@gobushido.com)
+  * [Akash Manohar](https://github.com/HashNuke) (akash@akash.im)
 
 Thanks
 ======
