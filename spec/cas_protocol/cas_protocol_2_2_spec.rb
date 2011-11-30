@@ -74,7 +74,7 @@ describe 'CasProtocol 2.2 /login as a credential acceptor [POST]' do
         uri.scheme.should == @valid_service_uri.scheme
         uri.host.should   == @valid_service_uri.host
         uri.path.should   == @valid_service_uri.path
-        uri.query_values["ticket"].should == "valid"
+        uri.query_values["ticket"].should =~ /ST-.+/
       end
 
       it 'displays a message to the client that is has successful initiated a sso session' do
