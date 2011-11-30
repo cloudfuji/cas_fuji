@@ -29,12 +29,12 @@ class CasFuji::App < Sinatra::Base
     # mark the login ticket as consumed if it's a valid login ticket
     LoginTicket.consume(@lt) if @lt
     
-    authenticate_user!(params[:username], params[:password]) if not @errors.empty?
-    
-    halt(401, erb('login.html'.to_sym))                      if not @errors.empty?
+    permanent_id = authenticate_user!(params[:username], params[:password]) if @errors.empty?
+
+    halt(401, erb('login.html'.to_sym)) if not @errors.empty?
 
     if @service and @errors.empty?
-      st = ServiceTicket.generate(@service, @username)
+      st = ServiceTicket.generate(@service, permanent_id, @client_hostname)
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
       redirect append_ticket_to_url(@service, st.name)
     end
@@ -111,7 +111,8 @@ class CasFuji::App < Sinatra::Base
 
   def authenticate_user!(username, password)
     CasFuji.config[:authenticators].each do |authenticator|
-      return true if authenticator["class"].constantize.validate(username, password)
+      permanent_id = authenticator["class"].constantize.validate(username, password)
+      return permanent_id if permanent_id
     end
     @errors << "Invalid username and password"
   end
