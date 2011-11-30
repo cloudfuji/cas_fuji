@@ -5,7 +5,6 @@ describe ServiceTicket do
   before :each do
     @valid_service      = "http://target-service.com/service_url"
     @valid_permanent_id = "test_pid"
-    @valid_username     = "test_username"
     @client_hostname    = "Bushido.local"
   end
   
@@ -15,17 +14,15 @@ describe ServiceTicket do
         ServiceTicket.generate(
           @valid_service,
           @valid_permanent_id,
-          @valid_username,
           @client_hostname)
       }.to change(ServiceTicket, :count).by(1)
     end
 
     it "should generate a new LoginTicket with valid name" do
       ServiceTicket.generate(
-          @valid_service,
-          @valid_permanent_id,
-          @valid_username,
-          @client_hostname).name.should =~ /ST-.*/
+        @valid_service,
+        @valid_permanent_id,
+        @client_hostname).name.should =~ /ST-.+/
     end
   end
 
@@ -34,10 +31,9 @@ describe ServiceTicket do
       st = ServiceTicket.generate(
         @valid_service,
         @valid_permanent_id,
-        @valid_username,
         @client_hostname)
 
-      ServiceTicket.valid?(@valid_service, @valid_username, st.name).should be_kind_of(ServiceTicket)
+      ServiceTicket.valid?(st.name).should be_kind_of(ServiceTicket)
     end
   end
 

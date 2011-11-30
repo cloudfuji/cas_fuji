@@ -10,7 +10,7 @@ describe LoginTicket do
     end
 
     it "should generate a new LoginTicket with valid name" do
-      LoginTicket.generate("test_client_hostname").name.should =~ /LT-.*/
+      LoginTicket.generate("test_client_hostname").name.should =~ /LT-.+/
     end
   end
 
