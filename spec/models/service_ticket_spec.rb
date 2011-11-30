@@ -1,13 +1,13 @@
 require 'spec_helper'
 
-describe ServiceTicket do
+describe "ServiceTicket" do
 
   before :each do
     @valid_service      = CGI.escape("http://target-service.com/service_url")
     @valid_permanent_id = "test_pid"
     @client_hostname    = "Bushido.local"
 
-    @service_ticket = ServiceTicket.generate(
+    @service_ticket = CasFuji::Models::ServiceTicket.generate(
       @valid_service,
       @valid_permanent_id,
       @client_hostname)
@@ -22,11 +22,11 @@ describe ServiceTicket do
   describe "generate" do
     it "should generate a new ServiceTicket and save it to the database" do
       expect {
-        ServiceTicket.generate(
+        CasFuji::Models::ServiceTicket.generate(
           @valid_service,
           @valid_permanent_id,
           @client_hostname)
-      }.to change(ServiceTicket, :count).by(1)
+      }.to change(CasFuji::Models::ServiceTicket, :count).by(1)
     end
 
     it "should generate a new LoginTicket with valid name" do
@@ -40,7 +40,7 @@ describe ServiceTicket do
     end
 
     it "should return false if it's been consumed" do
-      st = ServiceTicket.generate(
+      st = CasFuji::Models::ServiceTicket.generate(
         @valid_service,
         @valid_permanent_id,
         @client_hostname)
@@ -56,7 +56,7 @@ describe ServiceTicket do
     end
 
     it "should should return true if it's been consumed" do
-      st = ServiceTicket.generate(
+      st = CasFuji::Models::ServiceTicket.generate(
         @valid_service,
         @valid_permanent_id,
         @client_hostname)

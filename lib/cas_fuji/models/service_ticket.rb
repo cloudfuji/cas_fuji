@@ -1,4 +1,6 @@
 # CAS 3.1
+module CasFuji
+  module Models
 class ServiceTicket < ActiveRecord::Base
   # begins with "ST-"
   # Services MUST be able to accept ServiceTickets
@@ -20,10 +22,12 @@ class ServiceTicket < ActiveRecord::Base
   end
 
   def self.generate(service, permanent_id, client_hostname)
-    ServiceTicket.create(
+    CasFuji::Models::ServiceTicket.create(
       :name            => ("ST-".concat ::UUID.new.generate),
       :permanent_id    => permanent_id,
       :service         => service,
       :client_hostname => client_hostname)
   end
+end
+end
 end

@@ -27,4 +27,4 @@ require 'cas_fuji/app'
 require 'consumable'
 
 # Require all of the models
-Dir["#{Dir.pwd}/lib/models/**/*.rb"].reverse.each { |file| require file }
+Dir["#{Dir.pwd}/lib/cas_fuji/models/**/*.rb"].reverse.each { |file| require file }

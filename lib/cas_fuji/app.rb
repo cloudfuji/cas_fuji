@@ -17,7 +17,7 @@ class CasFuji::App < Sinatra::Base
     redirect append_ticket_to_url(@service, "valid")            if params[:gateway] and current_user and @service
     redirect @service                                           if params[:gateway]
     @messages << "you're already logged in as #{current_user}!" if current_user
-    @login_ticket_name = LoginTicket.generate(@client_hostname).name
+    @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
 
     erb 'login.html'.to_sym
   end
@@ -27,14 +27,14 @@ class CasFuji::App < Sinatra::Base
     requires_params({:username => "Username", :password => "Password", :lt => "Login ticket"})
 
     # mark the login ticket as consumed if it's a valid login ticket
-    LoginTicket.consume(@lt) if @lt
+    ::CasFuji::Models::LoginTicket.consume(@lt) if @lt
     
     permanent_id = authenticate_user!(params[:username], params[:password]) if @errors.empty?
 
     halt(401, erb('login.html'.to_sym)) if not @errors.empty?
 
     if @service and @errors.empty?
-      st = ServiceTicket.generate(@service, permanent_id, @client_hostname)
+      st = ::CasFuji::Models::ServiceTicket.generate(@service, permanent_id, @client_hostname)
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
       redirect append_ticket_to_url(@service, st.name)
     end
@@ -42,7 +42,7 @@ class CasFuji::App < Sinatra::Base
     @messages << "Successfully logged in"
 
     # TODO check for old ticket and use that instead
-    @login_ticket_name = LoginTicket.generate(@client_hostname).name
+    @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
     halt(200, erb('login.html'.to_sym))
   end
 
@@ -153,7 +153,7 @@ class CasFuji::App < Sinatra::Base
     escaped_service         = CGI.escape(@service)      if @service
     @service_encoding_valid = (escaped_service == raw_service)
 
-    @ticket  = ServiceTicket.find_by_name(@raw_ticket)
+    @ticket  = CasFuji::Models::ServiceTicket.find_by_name(@raw_ticket)
     @pgt_url = params[:pgt_url]
     @renew   = params[:renew]
 
