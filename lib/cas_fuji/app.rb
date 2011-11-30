@@ -1,5 +1,13 @@
 # TODO: Prefix all urls with mounting point
 class CasFuji::App < Sinatra::Base
+
+  set :database, "postgres://vagrant:vagrant@localhost/bushido_development"
+  set :logging, true
+  set :views, Proc.new { File.join("#{Rails.root}", "lib/cas_fuji/lib/cas_fuji/views") }
+
+  configure do
+    LOGGER = Logger.new(STDOUT)
+  end
   
   before { set_request_variables! }
 
