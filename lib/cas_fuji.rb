@@ -21,10 +21,13 @@ CasFuji.config[:authenticators].each do |authenticator|
   require authenticator["source"]
 end
 
+require 'consumable'
+# Require all of the models
+# Dir["#{Dir.pwd}/lib/cas_fuji/models/**/*.rb"].reverse.each { |file| puts file; require file }
+
+require "cas_fuji/models/login_ticket"
+require "cas_fuji/models/service_ticket"
+
+
 # Load sinatra app
 require 'cas_fuji/app'
-
-require 'consumable'
-
-# Require all of the models
-Dir["#{Dir.pwd}/lib/cas_fuji/models/**/*.rb"].reverse.each { |file| require file }
