@@ -7,23 +7,20 @@ class ServiceTicket < ActiveRecord::Base
   include Consumable
   set_table_name "casfuji_st"
 
-  def self.valid?(service, username, ticket_name)
+  def self.valid?(ticket_name)
     st = ServiceTicket.find(:all,
       :conditions => {
         :name     => ticket_name,
-        :username => username,
-        :service  => service,
-        :consumed => false})
-    puts "SERVICE TICKET STUFF #{ServiceTicket.all.inspect}"
+        :consumed => nil})
+
     return st.first if st.count > 0
     return nil
   end
 
-  def self.generate(service, permanent_id, username, client_hostname)
+  def self.generate(service, permanent_id, client_hostname)
     ServiceTicket.create(
       :name            => ("ST-".concat ::UUID.new.generate),
       :permanent_id    => permanent_id,
-      :username        => username,
       :service         => service,
       :client_hostname => client_hostname)
   end
