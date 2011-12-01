@@ -48,8 +48,6 @@ describe 'CasProtocol 2.5 /serviceValidate' do
 
       xml = Nokogiri.XML(response.body)
 
-      puts "RESPONSE #{response.body}"
-      
       xml.xpath("/cas:serviceResponse/cas:authenticationSuccess/cas:user").inner_text.should == @valid_permanent_id
     end
 
