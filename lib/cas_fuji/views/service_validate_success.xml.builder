@@ -5,7 +5,7 @@ xml.cas(:serviceResponse, 'xmlns:cas' => 'http://www.yale.edu/tp/cas') do |servi
     authentication_success.cas(:proxyGrantingTicket, @proxy_granting_ticket) if @proxy_granting_ticket
    
     @extra_attributes.each_pair do |key, value|
-      authentication_success.key(value)
+      authentication_success.__send__(key.to_sym, value)
     end
   end
 
