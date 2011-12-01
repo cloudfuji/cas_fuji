@@ -41,7 +41,7 @@ describe 'CasProtocol 2.2 /login as a credential acceptor [POST]' do
 
     it 'must *not* redirect the user to the service immediately after success authentication if the warn param is present' do
 
-      LoginTicket.should_receive(:consume).with(@valid_login_ticket)
+      CasFuji::Models::LoginTicket.should_receive(:consume).with(@valid_login_ticket)
       
       post '/login', {:service => @valid_service_target, :username => @valid_username, :password => @valid_password, :lt => @valid_login_ticket, :warn => true}, {"REMOTE_HOST" => "Bushido.local"}
       last_response.body.should include("you are about to be redirected to #{CGI.unescape(@valid_service_target)}, is that ok?")
@@ -89,7 +89,7 @@ describe 'CasProtocol 2.2 /login as a credential acceptor [POST]' do
         post '/login', {:username => @invalid_username, :password => @invalid_password, :lt => @invalid_login_ticket}
 
         response.body.should_not include("Successfully logged in")
-        response.body.should include 'action="/login"'
+        response.body.should include 'action="/cas/login"'
         response.body.should include 'method="post"'
       end
     end

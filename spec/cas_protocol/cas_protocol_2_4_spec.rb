@@ -27,9 +27,9 @@ describe 'CasProtocol 2.4 /validate' do
     @valid_password = "valid_password"
     @valid_login_ticket = "test_login_ticket"
     @client_hostname = "Bushido.local"
-    
-    st = ServiceTicket.generate(@valid_service_target, @valid_permanent_id, @client_hostname)
-    
+
+    st = CasFuji::Models::ServiceTicket.generate(@valid_service_target, @valid_permanent_id, @client_hostname)
+
     @valid_service_ticket = st.name
 
     @invalid_service_target = nil
@@ -52,7 +52,6 @@ describe 'CasProtocol 2.4 /validate' do
       get '/validate', {:ticket => @valid_service_ticket}
 
       response.status.should == 401
-      puts response.body.inspect
       response.body.should == @failure_response
     end
 

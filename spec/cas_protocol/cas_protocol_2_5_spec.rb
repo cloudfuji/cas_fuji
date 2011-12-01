@@ -20,7 +20,7 @@ describe 'CasProtocol 2.5 /serviceValidate' do
 
     @session = {:user => 123}
     @no_session = {}
-    @valid_service_target = CGI.escape('http://target-service.com/service_url')
+    @valid_service_target = ('http://target-service.com/service_url')
     @valid_service_uri    = Addressable::URI.parse('http://target-service.com/service_url')
     @valid_permanent_id = "valid_permanent_id"
     @valid_username = "valid_username"
@@ -28,8 +28,8 @@ describe 'CasProtocol 2.5 /serviceValidate' do
     @valid_login_ticket = "test_login_ticket"
     @client_hostname = "Bushido.local"
 
-    st = ServiceTicket.generate(@valid_service_target, @valid_permanent_id, @client_hostname)
-    
+    st = CasFuji::Models::ServiceTicket.generate(@valid_service_target, @valid_permanent_id, @client_hostname)
+
     @valid_service_ticket = st.name
 
     @invalid_service_target = CGI.escape("http://invalid-service-target.com")
@@ -47,8 +47,8 @@ describe 'CasProtocol 2.5 /serviceValidate' do
       get '/serviceValidate', {:service => @valid_service_target, :ticket => @valid_service_ticket}
 
       xml = Nokogiri.XML(response.body)
-      xml.xpath('/serviceResponse/authenticationFailure').should be_empty
-      xml.xpath('/serviceResponse/authenticationSuccess/user').inner_text.should == @valid_permanent_id
+
+      xml.xpath("/cas:serviceResponse/cas:authenticationSuccess/cas:user").inner_text.should == @valid_permanent_id
     end
 
     it 'checks the validity of a invalid service ticket' do
