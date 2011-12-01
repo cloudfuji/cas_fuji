@@ -2,13 +2,8 @@
 class CasFuji::App < Sinatra::Base
 
   set :database, "postgres://vagrant:vagrant@localhost/bushido_development"
-  set :logging, true
   set :views, Proc.new { File.join("#{Rails.root}", "lib/cas_fuji/lib/cas_fuji/views") }
 
-  configure do
-    LOGGER = Logger.new(STDOUT)
-  end
-  
   before { set_request_variables! }
 
   ## ============================================================
@@ -41,10 +36,16 @@ class CasFuji::App < Sinatra::Base
 
     halt(401, erb('login.html'.to_sym)) if not @errors.empty?
 
+    # TODO refactor this. LoginTicket is being generated twice in this action
+    if not @errors.empty?
+      @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
+      halt(401, erb('login.html'.to_sym))
+    end
+
     if @service and @errors.empty?
       st = ::CasFuji::Models::ServiceTicket.generate(@service, permanent_id, @client_hostname)
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
-      redirect append_ticket_to_url(@service, st.name)
+      redirect append_ticket_to_url(st.service_url, st.name)
     end
 
     @messages << "Successfully logged in"
@@ -70,28 +71,30 @@ class CasFuji::App < Sinatra::Base
     halt 200, "yes<LF>#{@ticket.permanent_id}<LF>"
   end
 
-  # CAS 2.5
-  get '/serviceValidate' do
-    # Case-1 service isn't passed in the param
-    @errors = [400, "INVALID_REQUEST", "Service is required"] if not @service
+  # CAS 2.5 and CAS 2.6
 
-    # Case-2 ticket isn't passed
-    @errors = [400, "INVALID_REQUEST", "Ticket is required"]  if @raw_ticket.nil?
+  ["/serviceValidate", "/proxyValidate"].each do |path|
 
-    # Case-3 If ticket isn't found or has been consumed
-    @errors = [401, "INVALID_TICKET",  "Invalid ticket"]      if @errors.empty? && (!valid_ticket?)
+    get path do
+      # Case-1 service isn't passed in the param
+      @errors = [400, "INVALID_REQUEST", "Service is required"] if not @service
 
-    # Case-4 If service encoding isn't valid or if ticket doesnt correspond to service
-    @errors = [401, "INVALID_SERVICE", "Invalid service"]     if @errors.empty? && (invalid_service_encoding? || ticket_with_invalid_service?)
+      # Case-2 ticket isn't passed
+      @errors = [400, "INVALID_REQUEST", "Ticket is required"]  if @raw_ticket.nil?
 
-    halt(200, builder('service_validate_success.xml'.to_sym)) if @errors.empty?
-    halt(@errors.first, builder('service_validate_failure.xml'.to_sym))
-  end
+      # Case-3 If ticket isn't found or has been consumed
+      @errors = [401, "INVALID_TICKET",  "Invalid ticket"]      if @errors.empty? && (!valid_ticket?)
 
-  # CAS 2.6
-  get '/proxyValidate' do
-    # TODO: Implement
-    raise CasFuji::UnimplementedError
+      # Case-4 If service encoding isn't valid or if ticket doesnt correspond to service
+      @errors = [401, "INVALID_SERVICE", "Invalid service"]     if @errors.empty? and (not @ticket.service_valid?(@service))
+
+      if @errors.empty?
+        @extra_attributes = extra_attributes_for @ticket.permanent_id
+        halt(200, builder('service_validate_success.xml'.to_sym))
+      end
+
+      halt(@errors.first, builder('service_validate_failure.xml'.to_sym))
+    end
   end
 
   # CAS 2.7
@@ -124,16 +127,25 @@ class CasFuji::App < Sinatra::Base
     uri.to_s
   end
 
+  # TODO store the name of the authenticator in the ServiceTicket table
+  # Another way is to check if it can be stored in a session/cookie
+  # This is just a temporary workaround for now.
+  def extra_attributes_for(permanent_id)
+    # ::CasFuji::Authenticators::TestAuth.extra_attributes_for(permanent_id)
+    ::BushidoFuji.extra_attributes_for(permanent_id)
+  end
+
   def authenticate_user!(username, password)
+    params = {
+      :username => username,
+      :password => password,
+    }
+
     CasFuji.config[:authenticators].each do |authenticator|
-      permanent_id = authenticator["class"].constantize.validate(username, password)
+      permanent_id = authenticator["class"].constantize.validate(params)
       return permanent_id if permanent_id
     end
     @errors << "Invalid username and password"
-  end
-
-  def invalid_service_encoding?
-    @service_encoding_valid == false
   end
 
   def existing_ticket?
@@ -143,23 +155,19 @@ class CasFuji::App < Sinatra::Base
   def valid_ticket?
     existing_ticket? && @ticket.not_consumed?
   end
-  
+
   def ticket_with_invalid_service?
-    puts "TICKET SERVICE #{@service}"
     !(valid_ticket? && @ticket.service_valid?(@service))
   end
-  
+
   # Initialize and massage the variables ahead of time
   def set_request_variables!
     current_user
-    
-    raw_service             = params[:service]
+
     @raw_ticket             = params[:ticket]
 
     @client_hostname = @env['HTTP_X_FORWARDED_FOR'] || @env['REMOTE_HOST'] || @env['REMOTE_ADDR']
-    @service                = CGI.unescape(raw_service) if raw_service
-    escaped_service         = CGI.escape(@service)      if @service
-    @service_encoding_valid = (escaped_service == raw_service)
+    @service                = params[:service]
 
     @ticket  = ::CasFuji::Models::ServiceTicket.find_by_name(@raw_ticket)
     @pgt_url = params[:pgt_url]
@@ -171,7 +179,5 @@ class CasFuji::App < Sinatra::Base
 
     @errors   = []
     @messages = []
-    
-    @errors << "Sorry, that doesn't look like a valid service param" if @service and not @service_encoding_valid
   end
 end

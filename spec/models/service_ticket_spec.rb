@@ -68,7 +68,7 @@ describe "ServiceTicket" do
   
   describe "service_valid?" do
     it "should return true if the service is valid " do
-      @service_ticket.service_valid?(CGI.unescape(@valid_service)).should be_true
+      @service_ticket.service_valid?(@valid_service).should be_true
     end
 
     it "should return false if the service is not valid" do

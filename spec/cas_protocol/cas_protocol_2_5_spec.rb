@@ -47,7 +47,7 @@ describe 'CasProtocol 2.5 /serviceValidate' do
       get '/serviceValidate', {:service => @valid_service_target, :ticket => @valid_service_ticket}
 
       xml = Nokogiri.XML(response.body)
-      xml.xpath('/serviceResponse/authenticationSuccess/user').inner_text.should == @valid_permanent_id
+      xml.xpath("/cas:serviceResponse/cas:authenticationSuccess/cas:user").inner_text.should == @valid_permanent_id
     end
 
     it 'checks the validity of a invalid service ticket' do

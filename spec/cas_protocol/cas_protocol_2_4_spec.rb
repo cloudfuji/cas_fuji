@@ -52,7 +52,6 @@ describe 'CasProtocol 2.4 /validate' do
       get '/validate', {:ticket => @valid_service_ticket}
 
       response.status.should == 401
-      puts response.body.inspect
       response.body.should == @failure_response
     end
 

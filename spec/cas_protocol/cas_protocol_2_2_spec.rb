@@ -89,7 +89,7 @@ describe 'CasProtocol 2.2 /login as a credential acceptor [POST]' do
         post '/login', {:username => @invalid_username, :password => @invalid_password, :lt => @invalid_login_ticket}
 
         response.body.should_not include("Successfully logged in")
-        response.body.should include 'action="/login"'
+        response.body.should include 'action="/cas/login"'
         response.body.should include 'method="post"'
       end
     end
