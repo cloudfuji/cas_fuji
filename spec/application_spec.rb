@@ -16,8 +16,9 @@ describe CasFuji do
   end
 
   class DummyAuthenticator
-    def self.validate(username, password)
-      return 'permanent_id' if username == "valid" and password == "valid"
+    def self.validate(params)
+      return 'permanent_id' if params[:username] == "valid" and params[:password] == "valid"
+      return nil
     end
   end
 
@@ -110,7 +111,7 @@ describe CasFuji do
 
     context 'valid_ticket?' do
       before(:each) do
-        @valid_ticket = ServiceTicket.generate(CGI.escape('http://casfuji.gobushido.com/users/service'),
+        @valid_ticket = ::CasFuji::Models::ServiceTicket.generate(CGI.escape('http://casfuji.gobushido.com/users/service'),
                                                'permanent-id',
                                                '127.0.0.1')
       end
