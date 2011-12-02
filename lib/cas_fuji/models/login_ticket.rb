@@ -16,7 +16,8 @@ module CasFuji
       end
       
       def self.generate(client_hostname)
-        CasFuji::Models::LoginTicket.create(:name => ("LT-".concat ::UUID.new.generate),
+        CasFuji::Models::LoginTicket.create(
+          :name            => unique_ticket_name("LT"),
           :client_hostname => client_hostname)
       end
     end

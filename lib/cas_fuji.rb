@@ -28,7 +28,6 @@ CasFuji.config[:authenticators].each do |authenticator|
 end
 
 require 'consumable'
-require 'ticket'
 
 # Load the models
 require "cas_fuji/models/base_ticket"
