@@ -1,4 +1,4 @@
 module CasFuji
-  class Error < StandardError
+  class Exception < StandardError
   end
 end

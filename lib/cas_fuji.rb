@@ -5,7 +5,11 @@ require 'builder'
 require 'uuid'
 require 'cgi'
 require 'ap'
-require 'sinatra/activerecord'
+
+# Only load this if ActiveRecord hasn't already been loaded. If we
+# load sinatra-activerecord *after* ActiveRecord has already been
+# loaded, then it'll overwrite the existing db connection
+require 'sinatra/activerecord' unless defined?(ActiveRecord)
 
 require 'addressable/uri'
 
@@ -26,8 +30,12 @@ end
 require 'consumable'
 require 'ticket'
 
+# Load the models
+require "cas_fuji/models/base_ticket"
 require "cas_fuji/models/login_ticket"
 require "cas_fuji/models/service_ticket"
+require "cas_fuji/models/proxy_ticket"
+require "cas_fuji/models/proxy_granting_ticket"
 
 # Load sinatra app
 require 'cas_fuji/app'

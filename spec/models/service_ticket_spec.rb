@@ -6,8 +6,10 @@ describe "ServiceTicket" do
     @valid_service      = "http://target-service.com/service_url"
     @valid_permanent_id = "test_pid"
     @client_hostname    = "Bushido.local"
+    @test_authenticator = "CasFuji::Authenticators::TestAuth"
 
     @service_ticket = CasFuji::Models::ServiceTicket.generate(
+      @test_authenticator,
       @valid_service,
       @valid_permanent_id,
       @client_hostname)
@@ -23,6 +25,7 @@ describe "ServiceTicket" do
     it "should generate a new ServiceTicket and save it to the database" do
       expect {
         CasFuji::Models::ServiceTicket.generate(
+          @test_authenticator,
           @valid_service,
           @valid_permanent_id,
           @client_hostname)
@@ -41,6 +44,7 @@ describe "ServiceTicket" do
 
     it "should return false if it's been consumed" do
       st = CasFuji::Models::ServiceTicket.generate(
+        @test_authenticator,
         @valid_service,
         @valid_permanent_id,
         @client_hostname)
@@ -57,6 +61,7 @@ describe "ServiceTicket" do
 
     it "should should return true if it's been consumed" do
       st = CasFuji::Models::ServiceTicket.generate(
+        @test_authenticator,
         @valid_service,
         @valid_permanent_id,
         @client_hostname)
