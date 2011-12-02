@@ -88,7 +88,7 @@ class CasFuji::App < Sinatra::Base
       @errors = [401, "INVALID_SERVICE", "Invalid service"]     if @errors.empty? and (not @ticket.service_valid?(@service))
 
       if @errors.empty?
-        @extra_attributes = self.class.extra_attributes_for @ticket.name, @ticket.permanent_id
+        @extra_attributes = self.class.extra_attributes_for @ticket.authenticator, @ticket.permanent_id
         halt(200, builder('service_validate_success.xml'.to_sym))
       end
 
@@ -131,9 +131,8 @@ class CasFuji::App < Sinatra::Base
     # TODO store the name of the authenticator in the ServiceTicket table
     # Another way is to check if it can be stored in a session/cookie
     # This is just a temporary workaround for now.
-    def extra_attributes_for(service_ticket_name, permanent_id)
-      service_ticket = ::CasFuji::Models::ServiceTicket.find_by_name(service_ticket_name)
-      return ("::" + service_ticket.authenticator).constantize.extra_attributes_for(permanent_id) if service_ticket
+    def extra_attributes_for(authenticator, permanent_id)
+      return ("::" + authenticator).constantize.extra_attributes_for(permanent_id) if service_ticket
     end
 
     def valid_ticket?(ticket)
