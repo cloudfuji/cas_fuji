@@ -88,7 +88,7 @@ class CasFuji::App < Sinatra::Base
       @errors = [401, "INVALID_SERVICE", "Invalid service"]     if @errors.empty? and (not @ticket.service_valid?(@service))
 
       if @errors.empty?
-        @extra_attributes = self.class.extra_attributes_for @ticket.permanent_id
+        @extra_attributes = self.class.extra_attributes_for @ticket.name, @ticket.permanent_id
         halt(200, builder('service_validate_success.xml'.to_sym))
       end
 
