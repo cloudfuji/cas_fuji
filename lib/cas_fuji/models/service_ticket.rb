@@ -28,7 +28,7 @@ module CasFuji
       def self.generate(authenticator, service, permanent_id, client_hostname)
         CasFuji::Models::ServiceTicket.create(
           :authenticator   => authenticator,
-          :name            => ("ST-".concat ::UUID.new.generate),
+          :name            => unique_ticket_name("ST"),
           :permanent_id    => permanent_id,
           :service         => service,
           :client_hostname => client_hostname)
