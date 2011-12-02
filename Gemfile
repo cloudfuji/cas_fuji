@@ -9,7 +9,6 @@ gem 'nokogiri'
 gem 'pg', '>=0.10.0'
 gem 'sqlite3-ruby', :require => 'sqlite3'
 gem 'activerecord'
-gem 'sinatra-activerecord'
 
 # Default random generator
 gem 'crypt-isaac'
