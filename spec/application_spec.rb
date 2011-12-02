@@ -94,17 +94,17 @@ describe CasFuji do
 
     context 'authenticated_user' do
       it 'should return a permanent id if credentials were valid' do
-        CasFuji.should_receive(:config).and_return({:authenticators => [{'class' => "DummyAuthenticator"}]})
+        CasFuji.should_receive(:config).and_return({:authenticators => [{:class => "DummyAuthenticator"}]})
         CasFuji::App.authenticate_user!("valid", "valid").should == ["DummyAuthenticator", "permanent_id"]
       end
 
       it 'should return nil if password is invalid' do
-        CasFuji.should_receive(:config).and_return({:authenticators => [{'class' => "DummyAuthenticator"}]})
+        CasFuji.should_receive(:config).and_return({:authenticators => [{:class => "DummyAuthenticator"}]})
         CasFuji::App.authenticate_user!("valid", "invalid").should be_nil
       end
 
       it 'should return nil if username is invalid' do
-        CasFuji.should_receive(:config).and_return({:authenticators => [{'class' => "DummyAuthenticator"}]})
+        CasFuji.should_receive(:config).and_return({:authenticators => [{:class => "DummyAuthenticator"}]})
         CasFuji::App.authenticate_user!("invalid", "valid").should be_nil
       end
     end
