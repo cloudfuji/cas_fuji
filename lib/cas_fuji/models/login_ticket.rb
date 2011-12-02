@@ -1,7 +1,7 @@
 # CAS 3.5
 module CasFuji
   module Models
-    class LoginTicket < ActiveRecord::Base
+    class LoginTicket < CasFuji::Models::BaseTicket
       # begins with "LT-"
       include Consumable
       set_table_name "casfuji_lt"
