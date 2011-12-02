@@ -95,7 +95,7 @@ describe CasFuji do
     context 'authenticated_user' do
       it 'should return a permanent id if credentials were valid' do
         CasFuji.should_receive(:config).and_return({:authenticators => [{'class' => "DummyAuthenticator"}]})
-        CasFuji::App.authenticate_user!("valid", "valid").should == "permanent_id"
+        CasFuji::App.authenticate_user!("valid", "valid").should == ["DummyAuthenticator", "permanent_id"]
       end
 
       it 'should return nil if password is invalid' do
@@ -111,7 +111,9 @@ describe CasFuji do
 
     context 'valid_ticket?' do
       before(:each) do
-        @valid_ticket = ::CasFuji::Models::ServiceTicket.generate(CGI.escape('http://casfuji.gobushido.com/users/service'),
+        @valid_ticket = ::CasFuji::Models::ServiceTicket.generate(
+                                              "CasFuji::Authenticators::TestAuth",
+                                               CGI.escape('http://casfuji.gobushido.com/users/service'),
                                                'permanent-id',
                                                '127.0.0.1')
       end

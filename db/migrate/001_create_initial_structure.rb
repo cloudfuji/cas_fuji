@@ -15,6 +15,7 @@ class CreateInitialStructure < ActiveRecord::Migration
       t.timestamp 'created_on',        :null => false
       t.datetime  'consumed',          :null => true
       t.string    'client_hostname',   :null => false
+      t.string    'authenticator',     :null => false
       t.string    'permanent_id',      :null => false
       t.integer   'granted_by_pgt_id', :null => true
       t.integer   'granted_by_tgt_id', :null => true

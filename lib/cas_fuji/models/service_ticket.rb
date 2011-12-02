@@ -1,7 +1,7 @@
 # CAS 3.1
 module CasFuji
   module Models
-    class ServiceTicket < ActiveRecord::Base
+    class ServiceTicket < CasFuji::Models::BaseTicket
       # begins with "ST-"
       # Services MUST be able to accept ServiceTickets
       # up to 32 characters, but it's RECOMMENDED they
@@ -25,8 +25,9 @@ module CasFuji
         CGI.unescape(self.service) == service
       end
 
-      def self.generate(service, permanent_id, client_hostname)
+      def self.generate(authenticator, service, permanent_id, client_hostname)
         CasFuji::Models::ServiceTicket.create(
+          :authenticator   => authenticator,
           :name            => ("ST-".concat ::UUID.new.generate),
           :permanent_id    => permanent_id,
           :service         => service,
