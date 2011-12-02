@@ -6,11 +6,9 @@ require 'uuid'
 require 'cgi'
 require 'ap'
 
-# Only load this if ActiveRecord hasn't already been loaded. If we
-# load sinatra-activerecord *after* ActiveRecord has already been
-# loaded, then it'll overwrite the existing db connection
-require 'sinatra/activerecord' unless defined?(ActiveRecord)
-
+require 'active_support/core_ext/string'
+require 'active_support/memoizable'
+require 'active_record'
 require 'addressable/uri'
 
 require 'cas_fuji/exception'
@@ -26,6 +24,8 @@ CasFuji.config[:authenticators].each do |authenticator|
   authenticator["source"] = authenticator["class"].underscore if authenticator["source"].nil?
   require authenticator["source"]
 end
+
+# ::ActiveRecord::Base.establish_connection(CasFuji.config[:database])
 
 require 'consumable'
 
