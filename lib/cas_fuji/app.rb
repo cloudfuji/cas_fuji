@@ -132,7 +132,7 @@ class CasFuji::App < Sinatra::Base
     # Another way is to check if it can be stored in a session/cookie
     # This is just a temporary workaround for now.
     def extra_attributes_for(authenticator, permanent_id)
-      return ("::" + authenticator).constantize.extra_attributes_for(permanent_id) if service_ticket
+      return ("::" + authenticator).constantize.extra_attributes_for(permanent_id)
     end
 
     def valid_ticket?(ticket)
