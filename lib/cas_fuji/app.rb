@@ -1,6 +1,6 @@
 class CasFuji::App < Sinatra::Base
 
-  #set :views, Proc.new { File.join("#{Rails.root}", "lib/cas_fuji/lib/cas_fuji/views") }
+  set :views, CasFuji.config[:templates][:path]
 
   before { set_request_variables! }
 
@@ -170,4 +170,5 @@ class CasFuji::App < Sinatra::Base
     @errors   = []
     @messages = []
   end
+
 end

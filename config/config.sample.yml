@@ -1,4 +1,6 @@
 :base: &base
+  :templates:
+    :path: lib/cas_fuji/views
   :server:
     :gem: webrick
     :port: 443
