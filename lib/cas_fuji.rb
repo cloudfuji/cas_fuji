@@ -21,8 +21,8 @@ require 'cas_fuji/authenticators/base'
 
 # Load the authenticators specified in the config file
 CasFuji.config[:authenticators].each do |authenticator|
-  authenticator["source"] = authenticator["class"].underscore if authenticator["source"].nil?
-  require authenticator["source"]
+  authenticator[:source] = authenticator[:class].underscore if authenticator[:source].nil?
+  require authenticator[:source]
 end
 
 # ::ActiveRecord::Base.establish_connection(CasFuji.config[:database])

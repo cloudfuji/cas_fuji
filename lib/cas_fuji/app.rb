@@ -121,8 +121,9 @@ class CasFuji::App < Sinatra::Base
       }
 
       CasFuji.config[:authenticators].each do |authenticator|
-        permanent_id = authenticator["class"].constantize.validate(params)
-        return [authenticator["class"], permanent_id] if permanent_id
+          puts "AUTHENTICATOR #{authenticator.inspect}"
+        permanent_id = authenticator[:class].constantize.validate(params)
+        return [authenticator[:class], permanent_id] if permanent_id
       end
 
       return nil
