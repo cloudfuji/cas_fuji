@@ -1,7 +1,5 @@
-# TODO: Prefix all urls with mounting point
 class CasFuji::App < Sinatra::Base
 
-  set :database, "postgres://vagrant:vagrant@localhost/bushido_development"
   #set :views, Proc.new { File.join("#{Rails.root}", "lib/cas_fuji/lib/cas_fuji/views") }
 
   before { set_request_variables! }
@@ -52,7 +50,6 @@ class CasFuji::App < Sinatra::Base
 
     @messages << "Successfully logged in"
 
-    # TODO check for old ticket and use that instead
     @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
     halt(200, erb('login.html'.to_sym))
   end
@@ -134,9 +131,9 @@ class CasFuji::App < Sinatra::Base
     # TODO store the name of the authenticator in the ServiceTicket table
     # Another way is to check if it can be stored in a session/cookie
     # This is just a temporary workaround for now.
-    def extra_attributes_for(permanent_id)
-      ::CasFuji::Authenticators::TestAuth.extra_attributes_for(permanent_id)
-      # ::BushidoFuji.extra_attributes_for(permanent_id)
+    def extra_attributes_for(service_ticket_name, permanent_id)
+      service_ticket = ::CasFuji::Models::ServiceTicket.find_by_name(service_ticket_name)
+      return ("::" + service_ticket.authenticator).constantize.extra_attributes_for(permanent_id) if service_ticket
     end
 
     def valid_ticket?(ticket)
