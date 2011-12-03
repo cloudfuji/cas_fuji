@@ -25,10 +25,6 @@ CasFuji.config[:authenticators].each do |authenticator|
   require authenticator[:source]
 end
 
-# ::ActiveRecord::Base.establish_connection(CasFuji.config[:database])
-
-require 'consumable'
-
 # Load the models
 require "cas_fuji/models/base_ticket"
 require "cas_fuji/models/login_ticket"

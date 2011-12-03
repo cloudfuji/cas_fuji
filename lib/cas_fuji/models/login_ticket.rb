@@ -3,16 +3,17 @@ module CasFuji
   module Models
     class LoginTicket < CasFuji::Models::BaseTicket
       # begins with "LT-"
-      include Consumable
       set_table_name "casfuji_lt"
       
       def self.valid?(login_ticket_name)
-        CasFuji::Models::LoginTicket.find_by_name(login_ticket_name)
+        lt = CasFuji::Models::LoginTicket.find_by_name(login_ticket_name)
+        return lt if lt.try(:consumed?) == false
       end
 
       def self.consume(login_ticket_name)
-        login_ticket = CasFuji::Models::LoginTicket.valid?(login_ticket_name)
-        login_ticket.consume! if not login_ticket.nil?
+        login_ticket = CasFuji::Models::LoginTicket.valid?(login_ticket_name) if login_ticket_name
+        
+        login_ticket.consume! if not login_ticket.nil? 
       end
       
       def self.generate(client_hostname)
