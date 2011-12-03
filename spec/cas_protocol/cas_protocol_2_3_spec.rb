@@ -56,14 +56,14 @@ describe 'CasProtocol 2.3 /logout' do
     it 'must accept the url param' do
       url = CGI.escape("http://www.go-back.edu")
       get '/logout', {:url => url}
-      response.body.should include("The application you just logged out of has provided a link it would like you to follow. Please click here to access #{CGI.unescape(url)}")
+      response.body.should include("The application you just logged out from has provided a link it would like you to follow. Please click here to access #{CGI.unescape(url)}")
     end
   end
 
   context '2.3.2 Response' do
     it 'must display a page stating the user has been logged out' do
       get '/logout'
-      response.body.should include("Successfully logged out")
+      response.body.should include("You've successfully logged out")
     end
   end
 end

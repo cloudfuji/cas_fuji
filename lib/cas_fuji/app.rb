@@ -57,9 +57,10 @@ class CasFuji::App < Sinatra::Base
   # CAS 2.3
   # Simply destroys the tgt cookie
   get '/logout' do
-    @messages << "The application you just logged out of has provided a link it would like you to follow. Please click here to access #{CGI.unescape(params[:url])}" if params[:url]
+    @messages << "The application you just logged out from has provided a link it would like you to follow. Please click here to access #{CGI.unescape(params[:url])}" if params[:url]
+    @messages << "You've successfully logged out!" if @messages.empty?
 
-    erb 'logout.html'.to_sym
+    erb 'login.html'.to_sym
   end
 
   # CAS 2.4
@@ -75,24 +76,19 @@ class CasFuji::App < Sinatra::Base
   ["/serviceValidate", "/proxyValidate"].each do |path|
 
     get path do
-      # Case-1 service isn't passed in the param
-      @errors = [400, "INVALID_REQUEST", "Service is required"] if not @service
+      codes = {:INVALID_REQUEST => 400,
+               :INVALID_TICKET  => 401,
+               :INVALID_SERVICE => 401}
 
-      # Case-2 ticket isn't passed
-      @errors = [400, "INVALID_REQUEST", "Ticket is required"]  if params[:ticket].nil?
+      error, message, service_ticket = CasFuji::Models::ServiceTicket.validate_ticket(@service, params[:ticket])
 
-      # Case-3 If ticket isn't found or has been consumed
-      @errors = [401, "INVALID_TICKET",  "Invalid ticket"]      if @errors.empty? and not self.class.valid_ticket?(@ticket)
-
-      # Case-4 If service encoding isn't valid or if ticket doesnt correspond to service
-      @errors = [401, "INVALID_SERVICE", "Invalid service"]     if @errors.empty? and (not @ticket.service_valid?(@service))
-
-      if @errors.empty?
-        @extra_attributes = self.class.extra_attributes_for @ticket.authenticator, @ticket.permanent_id
-        halt(200, builder('service_validate_success.xml'.to_sym))
+      if error
+        @errors = [codes[error], error, message]
+        halt(@errors.first, builder('service_validate_failure.xml'.to_sym))
       end
 
-      halt(@errors.first, builder('service_validate_failure.xml'.to_sym))
+      @extra_attributes = self.class.extra_attributes_for(service_ticket.authenticator, service_ticket.permanent_id)
+      halt(200, builder('service_validate_success.xml'.to_sym))
     end
   end
 
@@ -121,7 +117,6 @@ class CasFuji::App < Sinatra::Base
       }
 
       CasFuji.config[:authenticators].each do |authenticator|
-          puts "AUTHENTICATOR #{authenticator.inspect}"
         permanent_id = authenticator[:class].constantize.validate(params)
         return [authenticator[:class], permanent_id] if permanent_id
       end

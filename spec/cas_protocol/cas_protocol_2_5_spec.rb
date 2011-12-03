@@ -81,7 +81,7 @@ describe 'CasProtocol 2.5 /serviceValidate' do
       node = xml.xpath('/serviceResponse/authenticationFailure')
 
       node.attr('code').inner_text.should == 'INVALID_SERVICE'
-      node.inner_text.should include("Invalid service")
+      node.inner_text.should include("Service does not match ticket")
 
       # CAS MUST invalidate the ticket and disallow future validation of that same ticket
       pending "ticket.should_be invalid?"
