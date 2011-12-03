@@ -2,7 +2,7 @@ require 'logger'
 require 'active_record'
 require_relative '../lib/cas_fuji'
 
-namespace :casfuji do
+namespace :cas_fuji do
   namespace :db do
     task :config do
       puts "DB CONFIG: #{CasFuji.config[:database]}"
