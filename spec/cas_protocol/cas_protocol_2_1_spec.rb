@@ -96,7 +96,7 @@ describe 'CasProtocol 2.1 /login as a credential requestor [GET]' do
 
         response.status.should == 302
         uri = Addressable::URI.parse(response.headers["Location"])
-        uri.query_values["ticket"].should == "valid"
+        uri.query_values["ticket"].should =~ /\AST-[a-zA-Z0-0\-]+\Z/
       end
     end
 
