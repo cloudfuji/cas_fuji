@@ -9,6 +9,28 @@ module CasFuji
       include Consumable
       set_table_name "casfuji_st"
 
+      def self.generate(authenticator, service, permanent_id, client_hostname)
+        CasFuji::Models::ServiceTicket.create(
+          :authenticator   => authenticator,
+          :name            => unique_ticket_name("ST"),
+          :permanent_id    => permanent_id,
+          :service         => service,
+          :client_hostname => client_hostname)
+      end
+
+      def self.validate_ticket(service_url, ticket_name)
+        return [:INVALID_REQUEST, "Ticket is required"] if ticket_name.nil?
+        return [:INVALID_REQUEST, "Service is required"] if service_url.nil?
+
+        ticket = self.find_by_name(ticket_name)
+
+        return [:INVALID_TICKET, "Invalid ticket"] if ticket.nil? or not ticket.valid?
+        return [:INVALID_SERVICE, "Service does not match ticket"] if not ticket.service_valid?(service_url)
+
+        return [nil, "Ticket and service are valid", ticket]
+      end
+
+
       def consumed?
         not self.consumed.nil?
       end
@@ -22,17 +44,14 @@ module CasFuji
       end
 
       def service_valid?(service)
+        puts "#{CGI.unescape(self.service)} == #{service}"
         CGI.unescape(self.service) == service
       end
 
-      def self.generate(authenticator, service, permanent_id, client_hostname)
-        CasFuji::Models::ServiceTicket.create(
-          :authenticator   => authenticator,
-          :name            => unique_ticket_name("ST"),
-          :permanent_id    => permanent_id,
-          :service         => service,
-          :client_hostname => client_hostname)
+      def ticket_valid?
+        self.consumed? == false
       end
+
     end
   end
 end
