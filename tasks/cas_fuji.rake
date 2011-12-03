@@ -1,8 +1,6 @@
-$LOAD_PATH << './lib'
-
 require 'logger'
-require 'cas_fuji'
 require 'active_record'
+require_relative '../lib/cas_fuji'
 
 namespace :casfuji do
   namespace :db do
@@ -37,7 +35,8 @@ namespace :casfuji do
     task :migrate do
       ActiveRecord::Base.establish_connection(CasFuji.config[:database])
       ap ActiveRecord::Base.connection.inspect
-      ActiveRecord::Migrator.migrate('db/migrate', ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
+      puts "#{File.expand_path(File.dirname(__FILE__)) + '/../db/migrate'}"
+      ActiveRecord::Migrator.migrate(File.expand_path(File.dirname(__FILE__)) + '/../db/migrate', ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
     end
   end
 end
