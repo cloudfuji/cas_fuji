@@ -16,8 +16,8 @@ class CasFuji::App < Sinatra::Base
   # CAS 2.1
   get '/login' do
     redirect self.class.append_ticket_to_url(@service, "valid") if params[:gateway] and current_user and @service
-    redirect @service                                           if params[:gateway]
-    @messages << "you're already logged in as #{current_user}!" if current_user
+    redirect @service                                           if params[:gateway] and @service
+    @messages << "You're already logged in!" if current_user
 
     @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
 
@@ -26,7 +26,6 @@ class CasFuji::App < Sinatra::Base
 
   # CAS 2.2
   post '/login' do
-    puts "Well here we are: #{params.inspect}"
     requires_params({:username => "Username", :password => "Password", :lt => "Login ticket"})
 
     # Mark the login ticket as consumed if it's a valid login ticket
@@ -43,9 +42,11 @@ class CasFuji::App < Sinatra::Base
       halt(401, erb('login.html'.to_sym))
     end
 
+    # The user has successfully authenticated, save a TGT for their next visit
+    response.set_cookie('tgt', CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name)
+
     if @service and @errors.empty?
       st = ::CasFuji::Models::ServiceTicket.generate(authenticator, @service, permanent_id, @client_hostname)
-      response.set_cookie('tgt', tgt.to_s)
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
       redirect self.class.append_ticket_to_url(st.service_url, st.name)
     end
@@ -90,9 +91,6 @@ class CasFuji::App < Sinatra::Base
         @errors = [codes[error], error, message]
         halt(@errors.first, builder('service_validate_failure.xml'.to_sym))
       end
-
-      # The user has successfully authenticated, save a TGT for their next visit
-      session['tgt'] = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, service_ticket.authenticated, service_ticket.permanent_id).name
 
       @extra_attributes = self.class.extra_attributes_for(service_ticket.authenticator, service_ticket.permanent_id)
       halt(200, builder('service_validate_success.xml'.to_sym))
@@ -153,10 +151,10 @@ class CasFuji::App < Sinatra::Base
   end
 
   def current_user
-    session[:user] if not params[:renew]
-    
-    if @tgt = CasFuji::Models::TicketGrantingTicket.validate_ticket(session['tgt'])
-      return extra_attributes_for(@tgt.authenticator, tgt.permanent_id)
+    return nil if params[:renew]
+
+    if tgt = CasFuji::Models::TicketGrantingTicket.validate_ticket(request.cookies['tgt'])
+      return self.class.extra_attributes_for(tgt.authenticator, tgt.permanent_id)
     end
   end
 

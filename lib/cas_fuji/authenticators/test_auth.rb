@@ -12,7 +12,7 @@ module CasFuji
       end
       
       def self.validate(params)
-        return "test_permanent_id" if(params[:username] == "test_username" && params[:password] == "test_password")
+        return "test_permanent_id" if (params[:username] == "test_username" && params[:password] == "test_password")
         return false
       end
 

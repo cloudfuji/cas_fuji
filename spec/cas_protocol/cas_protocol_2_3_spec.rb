@@ -26,26 +26,31 @@ describe 'CasProtocol 2.3 /logout' do
     @valid_password = "test_password"
     @valid_login_ticket = "test_login_ticket"
 
+    @client_hostname = "Bushido.local"
+
     @invalid_service_target = nil
     @invalid_service_uri    = nil
     @invalid_username = nil
     @invalid_password = nil
     @invalid_login_ticket = nil
+
+    post '/login', {:username => @valid_username, :password => @valid_password, :lt => CasFuji::Models::LoginTicket.generate(@client_hostname).name}
+    rack_mock_session.cookie_jar["tgt"].should =~ /\ATGT-[a-zA-Z0-9\-]+\Z/
   end
 
   context '2.3 action ' do
     it 'must destroy the ticket-granting cookie' do
       login
       get '/logout'
-      rack_mock_session.cookie_jar["tgt"].should_not == "valid-tgt"
+      rack_mock_session.cookie_jar["tgt"].should be_blank
     end
 
     it 'after destroying the ticket-granting cookie, subsequent requests to /login will not obtain service tickets' do
-      login
-      # response.body.should_not include("please login") TODO: Comeback
+      get '/login', {:gateway => true, :service => @valid_service_target}
+      last_response.should be_redirect
 
       get '/logout'
-      rack_mock_session.cookie_jar["tgt"].should_not == "valid-tgt"
+      rack_mock_session.cookie_jar["tgt"].should be_blank
 
       get '/login'
       response.body.should include("please login")

@@ -21,6 +21,8 @@
     :level: DEBUG
     db_log: ./log/cas_fuji_db.log
   :quiet: false
+  :ticket_granting_ticket:
+    :session_length: <%= 15 * 24 * 60 * 60 %> # 15 days in seconds
 
 test:
   <<: *base

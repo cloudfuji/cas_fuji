@@ -12,16 +12,20 @@ describe 'CasProtocol 2.1 /login as a credential requestor [GET]' do
   end
 
   def login
-    post '/login', {:username => @valid_username, :password => @valid_password, :lt => @valid_login_ticket}
+    post '/login', {:username => @valid_username, :password => @valid_password, :lt => CasFuji::Models::LoginTicket.generate(@client_hostname).name}
+    rack_mock_session.cookie_jar["tgt"].should =~ /\ATGT-[a-zA-Z0-9\-]+\Z/
   end
 
-    before(:each) do
-      clear_cookies
+  before(:each) do
+    clear_cookies
 
-      @session = {:user => 123}
-      @no_session = {}
-      @valid_service_target = CGI.escape('http://target-service.com/service_url')
-    end
+    @session = {:user => 123}
+    @no_session = {}
+    @valid_service_target = CGI.escape('http://target-service.com/service_url')
+    @valid_username = "test_username"
+    @valid_password = "test_password"
+    @client_hostname = "Bushido.local"
+  end
 
   context 'in general' do
     context 'without a session' do
@@ -51,8 +55,10 @@ describe 'CasProtocol 2.1 /login as a credential requestor [GET]' do
 
     context 'with a session' do 
       it 'notifies the user that is is already logged in if there is no service param' do
-        get '/login', {}, {'rack.session' => @session}
-        response.body.should include("you're already logged in")
+        login
+
+        get '/login', {}
+        response.body.should include("You're already logged in")
       end
     end
   end
@@ -64,12 +70,14 @@ describe 'CasProtocol 2.1 /login as a credential requestor [GET]' do
     end
 
     it 'forces the client to present credentials if renew param is present' do
-      get '/login?renew=true', {}, {'rack.session' => @session}
+      login
+      get '/login', {:renew => true}
       response.body.should include('please login')
     end
 
     it 'should ignore the gateway param is the renew param is set' do
-      get '/login?renew=true', {}, {'rack.session' => @session}
+      login
+      get '/login', {:renew => true}
       response.body.should include('please login')
     end
   end
@@ -81,8 +89,10 @@ describe 'CasProtocol 2.1 /login as a credential requestor [GET]' do
     end
 
     context 'with a session' do
-      it 'should should redirect to the service url with a valid service ticket' do
-        get "/login", {:gateway => true, :service => @valid_service_target}, {'rack.session' => @session}
+      it 'should redirect to the service url with a valid service ticket' do
+        login
+
+        get "/login", {:gateway => true, :service => @valid_service_target}
 
         response.status.should == 302
         uri = Addressable::URI.parse(response.headers["Location"])
@@ -92,7 +102,7 @@ describe 'CasProtocol 2.1 /login as a credential requestor [GET]' do
 
     context 'without a session' do
       it 'should redirect to the service url *without* a ticket param if non-interactive authentication cannot be established' do
-        get "/login?gateway=true&service=#{@valid_service_target}", {}, {'rack.session' => @no_session}
+        get '/login', {:gateway => true, :service => @valid_service_target}, {'rack.session' => @no_session}
 
         response.status.should == 302
         uri = Addressable::URI.parse(response.headers["Location"])
@@ -102,7 +112,7 @@ describe 'CasProtocol 2.1 /login as a credential requestor [GET]' do
 
     it 'should act is if there are no parameters present if gateway is specified and service is not' do
       get '/login', :gateway => true, 'rack.session' => @session
-      pending 'What does this look like?'
+      response.body.should include("please login")
     end
   end
 

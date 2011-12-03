@@ -44,7 +44,6 @@ module CasFuji
       end
 
       def service_valid?(service)
-        puts "#{CGI.unescape(self.service)} == #{service}"
         CGI.unescape(self.service) == service
       end
 
