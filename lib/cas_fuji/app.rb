@@ -26,6 +26,7 @@ class CasFuji::App < Sinatra::Base
 
   # CAS 2.2
   post '/login' do
+    puts "Well here we are: #{params.inspect}"
     requires_params({:username => "Username", :password => "Password", :lt => "Login ticket"})
 
     # Mark the login ticket as consumed if it's a valid login ticket
@@ -44,6 +45,7 @@ class CasFuji::App < Sinatra::Base
 
     if @service and @errors.empty?
       st = ::CasFuji::Models::ServiceTicket.generate(authenticator, @service, permanent_id, @client_hostname)
+      response.set_cookie('tgt', tgt.to_s)
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
       redirect self.class.append_ticket_to_url(st.service_url, st.name)
     end
@@ -59,6 +61,8 @@ class CasFuji::App < Sinatra::Base
   get '/logout' do
     @messages << "The application you just logged out from has provided a link it would like you to follow. Please click here to access #{CGI.unescape(params[:url])}" if params[:url]
     @messages << "You've successfully logged out!" if @messages.empty?
+
+    response.delete_cookie 'tgt'
 
     erb 'login.html'.to_sym
   end
@@ -86,6 +90,9 @@ class CasFuji::App < Sinatra::Base
         @errors = [codes[error], error, message]
         halt(@errors.first, builder('service_validate_failure.xml'.to_sym))
       end
+
+      # The user has successfully authenticated, save a TGT for their next visit
+      session['tgt'] = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, service_ticket.authenticated, service_ticket.permanent_id).name
 
       @extra_attributes = self.class.extra_attributes_for(service_ticket.authenticator, service_ticket.permanent_id)
       halt(200, builder('service_validate_success.xml'.to_sym))
@@ -146,8 +153,11 @@ class CasFuji::App < Sinatra::Base
   end
 
   def current_user
-    # TODO: Implement how to retrieve the current user based off of cookie/ticket/etc.
     session[:user] if not params[:renew]
+    
+    if @tgt = CasFuji::Models::TicketGrantingTicket.validate_ticket(session['tgt'])
+      return extra_attributes_for(@tgt.authenticator, tgt.permanent_id)
+    end
   end
 
   # Initialize and massage the variables ahead of time
@@ -167,4 +177,19 @@ class CasFuji::App < Sinatra::Base
     @messages = []
   end
 
+  def flash
+  signed_message = request.cookies['_bushido_session']
+  
+    if signed_message.present?
+      secret = Bushido::Application.config.secret_token
+      verifier = ActiveSupport::MessageVerifier.new(secret)
+      session = verifier.verify(signed_message)
+
+      flash = session.delete('flash')
+      
+      signed_message = verifier.generate(session)
+      response.set_cookie('_bushido_session', :value => signed_message, :path => '/')
+      return flash
+    end
+  end
 end
