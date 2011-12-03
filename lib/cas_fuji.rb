@@ -35,6 +35,7 @@ require "cas_fuji/models/login_ticket"
 require "cas_fuji/models/service_ticket"
 require "cas_fuji/models/proxy_ticket"
 require "cas_fuji/models/proxy_granting_ticket"
+require "cas_fuji/models/ticket_granting_ticket"
 
 # Load sinatra app
 require 'cas_fuji/app'

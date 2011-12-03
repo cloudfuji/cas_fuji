@@ -22,15 +22,16 @@ class CreateInitialStructure < ActiveRecord::Migration
     end
 
     create_table 'casfuji_tgt', :force => true do |t|
-      t.string    'name',           :null => false
+      t.string    'name',             :null => false
       t.timestamp 'created_on',       :null => false
       t.string    'client_hostname',  :null => false
+      t.string    'authenticator',    :null => false
       t.string    'permanent_id',     :null => false
       t.text      'extra_attributes', :null => true
     end
 
     create_table 'casfuji_pgt', :force => true do |t|
-      t.string    'name',            :null => false
+      t.string    'name',              :null => false
       t.timestamp 'created_on',        :null => false
       t.string    'client_hostname',   :null => false
       t.string    'iou',               :null => false
