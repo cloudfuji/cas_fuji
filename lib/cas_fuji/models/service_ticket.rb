@@ -24,7 +24,7 @@ module CasFuji
 
         ticket = self.find_by_name(ticket_name)
 
-        return [:INVALID_TICKET, "Invalid ticket"] if ticket.nil? or not ticket.valid?
+        return [:INVALID_TICKET, "Invalid ticket"] if ticket.nil? or not ticket.ticket_valid?
         return [:INVALID_SERVICE, "Service does not match ticket"] if not ticket.service_valid?(service_url)
 
         return [nil, "Ticket and service are valid", ticket]

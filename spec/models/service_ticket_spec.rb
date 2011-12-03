@@ -81,4 +81,45 @@ describe "ServiceTicket" do
     end
   end
 
+  describe "validate_ticket" do
+    it "should return the proper error symbol with a missing service" do
+      error, message, ticket = CasFuji::Models::ServiceTicket.validate_ticket(nil, @valid_ticket)
+      error.should_not be_nil
+      error.should == :INVALID_REQUEST
+    end
+
+    it "should return the proper error symbol with a missing ticket" do
+      error, message, ticket = CasFuji::Models::ServiceTicket.validate_ticket(@valid_service, nil)
+      error.should_not be_nil
+      error.should == :INVALID_REQUEST
+    end
+
+    it "should return the proper error symbol for an invalid ticket" do
+      error, message, ticket = CasFuji::Models::ServiceTicket.validate_ticket(@valid_service, "invalid-ticket")
+      error.should_not be_nil
+      error.should == :INVALID_TICKET
+    end
+
+    it "should return the proper error symbol for a consumed ticket" do
+      @service_ticket.consume!
+      CasFuji::Models::ServiceTicket.should_receive(:find_by_name).with(@service_ticket.name).and_return(@service_ticket)
+      error, message, ticket = CasFuji::Models::ServiceTicket.validate_ticket(@valid_service, @service_ticket.name)
+      error.should_not be_nil
+      error.should == :INVALID_TICKET
+    end
+
+    it "should return the proper error symbol with an invalid service for a valid ticket" do
+      error, message, ticket = CasFuji::Models::ServiceTicket.validate_ticket("invalid-service", @service_ticket.name)
+      error.should_not be_nil
+      error.should == :INVALID_SERVICE
+    end
+
+    it "should return a valid, unconsumed ticket when given valid params" do
+      error, message, ticket = CasFuji::Models::ServiceTicket.validate_ticket(@valid_service, @service_ticket.name)
+      error.should be_nil
+      ticket.should_not be_nil
+      ticket.ticket_valid?.should be_true
+    end
+  end
+
 end
