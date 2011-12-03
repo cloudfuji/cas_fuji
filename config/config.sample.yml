@@ -1,6 +1,6 @@
 :base: &base
   :templates:
-    :path: lib/cas_fuji/views
+    :path: lib/views
   :server:
     :gem: webrick
     :port: 443
@@ -11,7 +11,7 @@
     :extra_attributes: [email, first_name, last_name, locale]
   :authenticators:
     - :class: CasFuji::Authenticators::TestAuth
-      # :source: lib/test_auth.rb
+      :source: ./lib/authenticators/test_auth.rb
   :organization:
     :name: Your Org Name
     :tagline: The name on the default login template
