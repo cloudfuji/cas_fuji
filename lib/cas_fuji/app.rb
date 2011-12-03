@@ -171,13 +171,15 @@ class CasFuji::App < Sinatra::Base
     @password = params[:password]
     @lt       = params[:lt]
 
+    @flash    = flash || {}
+
     @errors   = []
-    @messages = []
+    @messages = @flash.values
   end
 
   def flash
-  signed_message = request.cookies['_bushido_session']
-  
+    signed_message = request.cookies['_bushido_session']
+    
     if signed_message.present?
       secret = Bushido::Application.config.secret_token
       verifier = ActiveSupport::MessageVerifier.new(secret)
