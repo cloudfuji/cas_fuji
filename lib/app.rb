@@ -14,8 +14,8 @@ class CasFuji::App < Sinatra::Base
   ## ============================================================
 
   # CAS 2.1
-  get '/login' do
-    redirect self.class.append_ticket_to_url(@service, "valid") if params[:gateway] and current_user and @service
+  get '/login' do    
+    redirect self.class.append_ticket_to_url(@service, ::CasFuji::Models::ServiceTicket.generate(@tgt.authenticator, @service, @tgt.permanent_id, @client_hostname).name) if current_user and @service and not params[:warn]
     redirect @service                                           if params[:gateway] and @service
     @messages << "You're already logged in!" if current_user
 
@@ -153,16 +153,14 @@ class CasFuji::App < Sinatra::Base
   def current_user
     return nil if params[:renew]
 
-    if tgt = CasFuji::Models::TicketGrantingTicket.validate_ticket(request.cookies['tgt'])
-      return self.class.extra_attributes_for(tgt.authenticator, tgt.permanent_id)
-    end
+    return self.class.extra_attributes_for(@tgt.authenticator, @tgt.permanent_id) if @tgt
   end
 
   # Initialize and massage the variables ahead of time
   def set_request_variables!
     @client_hostname = @env['HTTP_X_FORWARDED_FOR'] || @env['REMOTE_HOST'] || @env['REMOTE_ADDR']
 
-
+    @tgt      = ::CasFuji::Models::TicketGrantingTicket.validate_ticket(request.cookies['tgt'])
     @ticket   = ::CasFuji::Models::ServiceTicket.find_by_name(params[:ticket])
     @service  = params[:service]
     @pgt_url  = params[:pgt_url]
