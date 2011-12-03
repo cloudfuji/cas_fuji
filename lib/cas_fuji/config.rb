@@ -3,7 +3,7 @@ module CasFuji
     extend ActiveSupport::Memoizable
 
     def config_file_path
-      ENV["CAS_FUJI_CONFIG"] || "./config/config.yml"
+      ENV["CAS_FUJI_CONFIG"] || "./config/cas_fuji.yml"
     end
 
     def config_file
