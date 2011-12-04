@@ -14,9 +14,9 @@ class CasFuji::App < Sinatra::Base
   ## ============================================================
 
   # CAS 2.1
-  get '/login' do    
-    redirect self.class.append_ticket_to_url(@service, ::CasFuji::Models::ServiceTicket.generate(@tgt.authenticator, @service, @tgt.permanent_id, @client_hostname).name) if current_user and @service and not params[:warn]
-    redirect @service                                           if params[:gateway] and @service
+  get '/login' do
+    redirect_with_ticket(@service, @tgt.authenticator, @tgt.permanent_id, @client_hostname) if @service and authorize_user! and not params[:warn]
+    redirect @service if params[:gateway] and @service
     @messages << "You're already logged in!" if current_user
 
     @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
@@ -36,23 +36,36 @@ class CasFuji::App < Sinatra::Base
 
     halt(401, erb('login.html'.to_sym)) if not @errors.empty?
 
+
+    if @errors.empty?
+      # The user has successfully authenticated, save a TGT for their next visit
+      response.set_cookie('tgt', name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name)
+
+      # Update @tgt
+      set_tgt!(name)
+
+      authorize_user! if @service
+    end
+
+
     # TODO refactor this. LoginTicket is being generated twice in this action
     if not @errors.empty?
       @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
       halt(401, erb('login.html'.to_sym))
     end
 
-    # The user has successfully authenticated, save a TGT for their next visit
-    response.set_cookie('tgt', CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name)
+    # TODO refactor this. LoginTicket is being generated twice in this action
+    if not @errors.empty?
+      @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
+      halt(401, erb('login.html'.to_sym))
+    end
 
     if @service and @errors.empty?
-      st = ::CasFuji::Models::ServiceTicket.generate(authenticator, @service, permanent_id, @client_hostname)
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
-      redirect self.class.append_ticket_to_url(st.service_url, st.name)
+      redirect_with_ticket(@service, authenticator, permanent_id, @client_hostname)
     end
 
     @messages << "Successfully logged in"
-
     @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
     halt(200, erb('login.html'.to_sym))
   end
@@ -144,6 +157,19 @@ class CasFuji::App < Sinatra::Base
 
   private
 
+  def redirect_with_ticket(service, authenticator, permanent_id, client_hostname)
+    service = CGI.unescape(service)
+    url = self.class.append_ticket_to_url(service, ::CasFuji::Models::ServiceTicket.generate(authenticator, service, permanent_id, client_hostname).name)
+    redirect url
+  end
+
+  def authorize_user!
+    authorized = current_user && @service && CasFuji.config[:authorizer][:class].constantize.authorized?(@tgt.permanent_id, @service)
+
+    @errors << "You are not authorized to access this app" unless authorized
+    return authorized
+  end
+
   def requires_params(params)
     params.each_pair do |param_symbol, human_name|
       @errors << "#{human_name} is required" unless self.instance_variable_get("@#{param_symbol}")
@@ -151,16 +177,25 @@ class CasFuji::App < Sinatra::Base
   end
 
   def current_user
-    return nil if params[:renew]
+    return nil if params[:renew] or @tgt.nil?
 
     return self.class.extra_attributes_for(@tgt.authenticator, @tgt.permanent_id) if @tgt
+  end
+
+  def set_tgt!(ticket_name=nil)
+    # Set the cookie based off of @tgt or fall through to the tgt
+    # field in the incoming cookie (if it's there)
+    ticket_name ||= request.cookies['tgt']
+
+    @tgt = ::CasFuji::Models::TicketGrantingTicket.validate_ticket(ticket_name) if ticket_name
   end
 
   # Initialize and massage the variables ahead of time
   def set_request_variables!
     @client_hostname = @env['HTTP_X_FORWARDED_FOR'] || @env['REMOTE_HOST'] || @env['REMOTE_ADDR']
 
-    @tgt      = ::CasFuji::Models::TicketGrantingTicket.validate_ticket(request.cookies['tgt'])
+    set_tgt!
+
     @ticket   = ::CasFuji::Models::ServiceTicket.find_by_name(params[:ticket])
     @service  = params[:service]
     @pgt_url  = params[:pgt_url]
