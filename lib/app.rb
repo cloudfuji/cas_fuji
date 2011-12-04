@@ -44,15 +44,12 @@ class CasFuji::App < Sinatra::Base
       # Update @tgt
       set_tgt!(name)
 
-      authorize_user! if @service
+      if @service && !authorize_user!
+        halt(401, erb('unauthorized.html'.to_sym))
+      end
     end
 
 
-    # TODO refactor this. LoginTicket is being generated twice in this action
-    if not @errors.empty?
-      @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
-      halt(401, erb('login.html'.to_sym))
-    end
 
     # TODO refactor this. LoginTicket is being generated twice in this action
     if not @errors.empty?
