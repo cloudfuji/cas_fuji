@@ -70,7 +70,7 @@ describe 'CasProtocol 2.2 /login as a credential acceptor [POST]' do
       it 'redirect to the service target if service param present' do
         post '/login', {:service => @valid_service_target, :username => @valid_username, :password => @valid_password, :lt => @valid_login_ticket}
 
-        uri = Addressable::URI.parse(last_response.headers["Location"])
+        uri = Addressable::URI.parse(response.headers["Location"])
         uri.scheme.should == @valid_service_uri.scheme
         uri.host.should   == @valid_service_uri.host
         uri.path.should   == @valid_service_uri.path
