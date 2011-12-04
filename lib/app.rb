@@ -15,7 +15,7 @@ class CasFuji::App < Sinatra::Base
 
   # CAS 2.1
   get '/login' do
-    redirect_with_ticket(@service, @tgt.authenticator, @tgt.permanent_id, @client_hostname) if @service and authorize_user! and not params[:warn]
+    redirect_with_ticket(@service, @tgt.authenticator, @tgt.permanent_id, @client_hostname) if current_user && @service && authorize_user! && params[:warn].nil?
     redirect @service if params[:gateway] and @service
     @messages << "You're already logged in!" if current_user
 
@@ -161,9 +161,9 @@ class CasFuji::App < Sinatra::Base
   end
 
   def authorize_user!
-    authorized = current_user && @service && CasFuji.config[:authorizer][:class].constantize.authorized?(@tgt.permanent_id, @service)
+    authorized = CasFuji.config[:authorizer][:class].constantize.authorized?(@tgt.permanent_id, @service)
 
-    @errors << "You are not authorized to access this app" unless authorized
+    @errors << "You are not authorized to access this app" unless authorized and @tgt
     return authorized
   end
 
