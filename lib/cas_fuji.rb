@@ -25,6 +25,8 @@ CasFuji.config[:authenticators].each do |authenticator|
   require authenticator[:source]
 end
 
+require CasFuji.config[:authorizer][:source]
+
 # Load the models
 require_relative "models/base_ticket"
 require_relative "models/login_ticket"

@@ -12,6 +12,9 @@
   :authenticators:
     - :class: CasFuji::Authenticators::TestAuth
       :source: ./lib/authenticators/test_auth.rb
+  :authorizer:
+    :class: CasFuji::Authorizer
+    :source: ./lib/authorizer.rb
   :organization:
     :name: Your Org Name
     :tagline: The name on the default login template
