@@ -1,6 +1,27 @@
 class CasFuji::App < Sinatra::Base
 
+  ## ============================================================
+  ## 
+  ## Basic setup
+  ##
+  ## Set all the configuration and error handlers
+  ##
+  ## ============================================================
+
   set :views, CasFuji.config[:templates][:path]
+
+  CasFuji.config[:sinatra_settings].each_pair do |key, value|
+    set key, value
+  end
+
+  not_found do
+    File.read(CasFuji.config[:templates][:error_404_html])
+  end
+
+  error do
+    File.read(CasFuji.config[:templates][:error_500_html])
+  end
+
 
   before { set_request_variables! }
 

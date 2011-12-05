@@ -1,6 +1,10 @@
 :base: &base
+  :sinatra_settings:
+    :show_exceptions: <%= not ENV['RACK_ENV'] == 'production' %>
   :templates:
     :path: lib/views
+    :error_500_html: lib/views/500.html
+    :error_404_html: lib/views/404.html
   :server:
     :gem: webrick
     :port: 443
