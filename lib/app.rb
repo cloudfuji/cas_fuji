@@ -1,6 +1,27 @@
 class CasFuji::App < Sinatra::Base
 
+  ## ============================================================
+  ## 
+  ## Basic setup
+  ##
+  ## Set all the configuration and error handlers
+  ##
+  ## ============================================================
+
   set :views, CasFuji.config[:templates][:path]
+
+  CasFuji.config[:sinatra_settings].each_pair do |key, value|
+    set key, value
+  end
+
+  not_found do
+    File.read(CasFuji.config[:templates][:error_404_html])
+  end
+
+  error do
+    File.read(CasFuji.config[:templates][:error_500_html])
+  end
+
 
   before { set_request_variables! }
 
@@ -15,7 +36,7 @@ class CasFuji::App < Sinatra::Base
 
   # CAS 2.1
   get '/login' do
-    redirect_with_ticket(@service, @tgt.authenticator, @tgt.permanent_id, @client_hostname) if @service and authorize_user! and not params[:warn]
+    redirect_with_ticket(@service, @tgt.authenticator, @tgt.permanent_id, @client_hostname) if current_user && @service && authorize_user! && params[:warn].nil?
     redirect @service if params[:gateway] and @service
     @messages << "You're already logged in!" if current_user
 
@@ -44,15 +65,12 @@ class CasFuji::App < Sinatra::Base
       # Update @tgt
       set_tgt!(name)
 
-      authorize_user! if @service
+      if @service && !authorize_user!
+        halt(401, erb('unauthorized.html'.to_sym))
+      end
     end
 
 
-    # TODO refactor this. LoginTicket is being generated twice in this action
-    if not @errors.empty?
-      @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
-      halt(401, erb('login.html'.to_sym))
-    end
 
     # TODO refactor this. LoginTicket is being generated twice in this action
     if not @errors.empty?
@@ -164,9 +182,9 @@ class CasFuji::App < Sinatra::Base
   end
 
   def authorize_user!
-    authorized = current_user && @service && CasFuji.config[:authorizer][:class].constantize.authorized?(@tgt.permanent_id, @service)
+    authorized = CasFuji.config[:authorizer][:class].constantize.authorized?(@tgt.permanent_id, @service)
 
-    @errors << "You are not authorized to access this app" unless authorized
+    @errors << "You are not authorized to access this app" unless authorized and @tgt
     return authorized
   end
 
