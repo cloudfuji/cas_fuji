@@ -45,6 +45,40 @@ class CasFuji::App < Sinatra::Base
     erb 'login.html'.to_sym
   end
 
+  get '/invite' do
+    requires_params({'invitation_token' => "Invitation Token"})
+
+    authenticator, permanent_id = self.class.authenticate_user!(params[:username], params[:password], params) if @errors.empty?
+    @errors << "Invalid invitation token" if permanent_id.nil?
+
+    if @errors.empty?
+      # The user has successfully authenticated, save a TGT for their next visit
+      response.set_cookie('tgt', name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name)
+
+      # Update @tgt
+      set_tgt!(name)
+
+      if @service && !authorize_user!
+        halt(401, erb('unauthorized.html'.to_sym))
+      end
+    end
+
+    # TODO refactor this. LoginTicket is being generated twice in this action
+    if not @errors.empty?
+      @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
+      halt(401, erb('login.html'.to_sym))
+    end
+
+    if @service and @errors.empty?
+      halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
+      redirect_with_ticket(@service, authenticator, permanent_id, @client_hostname)
+    end
+
+    @messages << "Successfully logged in"
+    @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
+    halt(200, erb('login.html'.to_sym))
+  end
+
   # CAS 2.2
   post '/login' do
     requires_params({:username => "Username", :password => "Password", :lt => "Login ticket"})
@@ -52,7 +86,7 @@ class CasFuji::App < Sinatra::Base
     # Mark the login ticket as consumed if it's a valid login ticket
     ::CasFuji::Models::LoginTicket.consume(@lt) if @lt
 
-    authenticator, permanent_id = self.class.authenticate_user!(params[:username], params[:password]) if @errors.empty?
+    authenticator, permanent_id = self.class.authenticate_user!(params[:username], params[:password], params) if @errors.empty?
     @errors << "Invalid username and password" if permanent_id.nil?
 
     halt(401, erb('login.html'.to_sym)) if not @errors.empty?
@@ -146,11 +180,13 @@ class CasFuji::App < Sinatra::Base
       uri.to_s
     end
 
-    def authenticate_user!(username, password)
-      params = {
+    def authenticate_user!(username, password, params={})
+      _params = {
         :username => username,
         :password => password,
       }
+
+      params.merge!(_params)
 
       CasFuji.config[:authenticators].each do |authenticator|
         permanent_id = authenticator[:class].constantize.validate(params)
@@ -214,18 +250,19 @@ class CasFuji::App < Sinatra::Base
 
     set_tgt!
 
-    @ticket   = ::CasFuji::Models::ServiceTicket.find_by_name(params[:ticket])
-    @service  = params[:service]
-    @pgt_url  = params[:pgt_url]
-    @renew    = params[:renew]
-    @username = params[:username]
-    @password = params[:password]
-    @lt       = params[:lt]
+    @ticket           = ::CasFuji::Models::ServiceTicket.find_by_name(params[:ticket])
+    @invitation_token = params[:invitation_token]
+    @service          = params[:service]
+    @pgt_url          = params[:pgt_url]
+    @renew            = params[:renew]
+    @username         = params[:username]
+    @password         = params[:password]
+    @lt               = params[:lt]
 
-    @flash    = flash || {}
+    @flash            = flash || {}
 
-    @errors   = []
-    @messages = @flash.values
+    @errors           = []
+    @messages         = @flash.values
   end
 
   def flash
