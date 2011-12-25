@@ -70,8 +70,8 @@ class CasFuji::App < Sinatra::Base
     end
 
     if @service and @errors.empty?
-      halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
-      redirect_with_ticket(@service, authenticator, permanent_id, @client_hostname)
+      @destination = url_with_ticket(@service, authenticator, permanent_id, @client_hostname)
+      halt(200, erb('invite.html'.to_sym))
     end
 
     @messages << "Successfully logged in"
@@ -211,9 +211,14 @@ class CasFuji::App < Sinatra::Base
 
   private
 
+  def url_with_ticket(service, authenticator, permanent_id, client_hostname)
+    url = self.class.append_ticket_to_url(service, ::CasFuji::Models::ServiceTicket.generate(authenticator, service, permanent_id, client_hostname).name)
+  end
+
+
   def redirect_with_ticket(service, authenticator, permanent_id, client_hostname)
     service = CGI.unescape(service)
-    url = self.class.append_ticket_to_url(service, ::CasFuji::Models::ServiceTicket.generate(authenticator, service, permanent_id, client_hostname).name)
+    url     = url_with_ticket(service, authenticator, permanent_id, client_hostname)
     redirect url
   end
 
