@@ -128,6 +128,12 @@ class CasFuji::App < Sinatra::Base
     @messages << "The application you just logged out from has provided a link it would like you to follow. Please click here to access #{CGI.unescape(params[:url])}" if params[:url]
     @messages << "You've successfully logged out!" if @messages.empty?
 
+    tgt = ::CasFuji::Models::TicketGrantingTicket.find_by_name(request.cookies['tgt'])
+    service_tickets = CasFuji::Models::ServiceTicket.where(:permanent_id => tgt.permanent_id, :consumed => nil)
+    service_tickets.each do |service_ticket|
+      service_ticket.notify_logout
+    end
+
     response.delete_cookie 'tgt'
 
     erb 'login.html'.to_sym

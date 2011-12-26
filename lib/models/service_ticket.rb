@@ -30,6 +30,34 @@ module CasFuji
       end
 
 
+      def notify_logout
+        puts "LOGOUT SERVICE: #{self.service}"
+        uri = URI.parse(self.service)
+        puts "PARSED SERVICE: #{uri.inspect}"
+        uri.path = '/' if uri.path.empty?
+        time = Time.now
+
+        logout_template = URI.escape(%{<samlp:LogoutRequest ID="#{self.id}" Version="2.0" IssueInstant="#{time.rfc2822}">
+            <saml:NameID></saml:NameID>
+            <samlp:SessionIndex>#{self.name}</samlp:SessionIndex>
+            </samlp:LogoutRequest>})
+
+        begin
+          response = Net::HTTP.post_form(uri, {'logoutRequest' => logout_template})
+          if response.kind_of? Net::HTTPSuccess
+            puts "Logout notification successfully posted to #{self.service.inspect}."
+            return true
+          else
+            puts "Service #{self.service.inspect} responed to logout notification with code '#{response.code}'!"
+            return false
+          end
+        rescue Exception => e
+          puts "Failed to send logout notification to service #{self.service.inspect} due to #{e}"
+          return false
+        end
+      end
+
+
       def consumed?
         not self.consumed.nil?
       end
