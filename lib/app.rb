@@ -53,7 +53,8 @@ class CasFuji::App < Sinatra::Base
 
     if @errors.empty?
       # The user has successfully authenticated, save a TGT for their next visit
-      response.set_cookie('tgt', name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name)
+      name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name
+      response.set_cookie('tgt', {:value => name, :path => '/cas', :expires => 15.days.from_now})
 
       # Update @tgt
       set_tgt!(name)
@@ -94,7 +95,9 @@ class CasFuji::App < Sinatra::Base
 
     if @errors.empty?
       # The user has successfully authenticated, save a TGT for their next visit
-      response.set_cookie('tgt', name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name)
+
+      name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name
+      response.set_cookie('tgt', {:value => name, :path => '/cas', :expires => 15.days.from_now})
 
       # Update @tgt
       set_tgt!(name)
