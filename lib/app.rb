@@ -53,7 +53,8 @@ class CasFuji::App < Sinatra::Base
 
     if @errors.empty?
       # The user has successfully authenticated, save a TGT for their next visit
-      response.set_cookie('tgt', name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name)
+      name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name
+      response.set_cookie('tgt', {:value => name, :path => '/cas', :expires => 15.days.from_now})
 
       # Update @tgt
       set_tgt!(name)
@@ -94,7 +95,8 @@ class CasFuji::App < Sinatra::Base
 
     if @errors.empty?
       # The user has successfully authenticated, save a TGT for their next visit
-      response.set_cookie('tgt', name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name)
+      name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name
+      response.set_cookie('tgt', {:value => name, :path => '/cas', :expires => 15.days.from_now})
 
       # Update @tgt
       set_tgt!(name)
@@ -129,9 +131,10 @@ class CasFuji::App < Sinatra::Base
     @messages << "You've successfully logged out!" if @messages.empty?
 
     tgt = ::CasFuji::Models::TicketGrantingTicket.find_by_name(request.cookies['tgt'])
-    service_tickets = CasFuji::Models::ServiceTicket.where(:permanent_id => tgt.permanent_id, :consumed => nil)
-    service_tickets.each do |service_ticket|
-      service_ticket.notify_logout
+    if tgt
+      service_tickets = CasFuji::Models::ServiceTicket.where(:permanent_id => tgt.permanent_id, :consumed => nil)
+      puts "SERVICE_TICKET COUNT: #{service_tickets.count}"
+      service_tickets.each { |service_ticket| service_ticket.notify_logout }
     end
 
     response.delete_cookie 'tgt'
