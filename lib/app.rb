@@ -134,7 +134,7 @@ class CasFuji::App < Sinatra::Base
     if tgt
       service_tickets = CasFuji::Models::ServiceTicket.where(:permanent_id => tgt.permanent_id, :logged_out => false)
       puts "SERVICE_TICKET COUNT: #{service_tickets.count}"
-      service_tickets.each { |service_ticket| service_ticket.notify_logout }
+      service_tickets.each { |service_ticket| service_ticket.notify_logout! }
     end
 
     response.delete_cookie 'tgt'

@@ -29,11 +29,14 @@ module CasFuji
         return [nil, "Ticket and service are valid", ticket]
       end
 
+      def log_out!
+        self.logged_out = true
+        self.save
+      end
 
-      def notify_logout
+      def notify_logout!
         puts "LOGOUT SERVICE: #{self.service}"
         uri = URI.parse(self.service)
-        puts "PARSED SERVICE: #{uri.inspect}"
         uri.path = '/' if uri.path.empty?
         time = Time.now
 
@@ -46,7 +49,7 @@ module CasFuji
           response = Net::HTTP.post_form(uri, {'logoutRequest' => logout_template})
           if response.kind_of? Net::HTTPSuccess
             puts "Logout notification successfully posted to #{self.service.inspect}."
-            return true
+            return self.log_out!  # returns the value of the save method in log_out!
           else
             puts "Service #{self.service.inspect} responed to logout notification with code '#{response.code}'!"
             return false
@@ -60,10 +63,6 @@ module CasFuji
 
       def consumed?
         not self.consumed.nil?
-      end
-
-      def not_consumed?
-        !self.consumed?
       end
 
       def service_url
