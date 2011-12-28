@@ -37,10 +37,10 @@ module CasFuji
         uri.path = '/' if uri.path.empty?
         time = Time.now
 
-        logout_template = URI.escape(%{<samlp:LogoutRequest ID="#{self.id}" Version="2.0" IssueInstant="#{time.rfc2822}">
+        logout_template = %{<samlp:LogoutRequest ID="#{self.id}" Version="2.0" IssueInstant="#{time.rfc2822}">
             <saml:NameID></saml:NameID>
             <samlp:SessionIndex>#{self.name}</samlp:SessionIndex>
-            </samlp:LogoutRequest>})
+            </samlp:LogoutRequest>}
 
         begin
           response = Net::HTTP.post_form(uri, {'logoutRequest' => logout_template})
