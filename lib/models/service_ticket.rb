@@ -29,10 +29,6 @@ module CasFuji
         return [nil, "Ticket and service are valid", ticket]
       end
 
-      def log_out!
-        self.logged_out = true
-        self.save
-      end
 
       def logout_template
         time = Time.now
@@ -41,28 +37,26 @@ module CasFuji
           <samlp:SessionIndex>#{self.name}</samlp:SessionIndex>
           </samlp:LogoutRequest>}
       end
-      
-      def notify_logout!
-        puts "LOGOUT SERVICE: #{self.service}"
-        uri = URI.parse(self.service)
-        
-        if uri.host == Kosei[:yuri][:host] and uri.port == Kosei[:yuri][:port]
-          puts "ITS THE BUSHIDO APP!"
-          # TODO log the user out of the Bushido app
-          return true
-        end
-        
-        uri.path = '/' if uri.path.empty?
 
+
+      def logout_via_authenticator
+        authenticator_klass = self.authenticator.constantize
+        return authenticator_klass.logout!(self) if authenticator_klass.respond_to? :logout!
+        false
+      end
+
+
+      def notify_logout!
+        return self.logout! if self.logout_via_authenticator or self.logout_via_cas
+        false
+      end
+
+
+      def logout_via_cas
         begin
-          response = Net::HTTP.post_form(uri, {'logoutRequest' => self.logout_template})
-          if response.kind_of? Net::HTTPSuccess
-            puts "Logout notification successfully posted to #{self.service.inspect}."
-            return self.log_out!  # returns the value of the save method in log_out
-          else
-            puts "Service #{self.service.inspect} responed to logout notification with code '#{response.code}'!"
-            return false
-          end
+          response = Net::HTTP.post_form(self.service_uri, {'logoutRequest' => self.logout_template})
+          return true if response.kind_of? Net::HTTPSuccess
+          return false
         rescue Exception => e
           puts "Failed to send logout notification to service #{self.service.inspect} due to #{e}"
           return false
@@ -83,6 +77,17 @@ module CasFuji
 
       def ticket_valid?
         self.consumed? == false
+      end
+
+      def service_uri
+        uri = URI.parse(self.service)
+        uri.path = '/' if uri.path.empty?
+        return uri
+      end
+
+      def logout!
+        self.logged_out = true
+        self.save
       end
 
     end
