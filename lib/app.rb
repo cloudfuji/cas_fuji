@@ -132,7 +132,7 @@ class CasFuji::App < Sinatra::Base
 
     tgt = ::CasFuji::Models::TicketGrantingTicket.find_by_name(request.cookies['tgt'])
     if tgt
-      service_tickets = CasFuji::Models::ServiceTicket.where(:permanent_id => tgt.permanent_id, :consumed => nil)
+      service_tickets = CasFuji::Models::ServiceTicket.where(:permanent_id => tgt.permanent_id, :logged_out => false)
       puts "SERVICE_TICKET COUNT: #{service_tickets.count}"
       service_tickets.each { |service_ticket| service_ticket.notify_logout }
     end
@@ -165,7 +165,8 @@ class CasFuji::App < Sinatra::Base
         @errors = [codes[error], error, message]
         halt(@errors.first, builder('service_validate_failure.xml'.to_sym))
       end
-
+      
+      service_ticket.consume!
       @extra_attributes = self.class.extra_attributes_for(service_ticket.authenticator, service_ticket.permanent_id)
       halt(200, builder('service_validate_success.xml'.to_sym))
     end
