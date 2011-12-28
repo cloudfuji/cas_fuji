@@ -34,22 +34,31 @@ module CasFuji
         self.save
       end
 
+      def logout_template
+        time = Time.now
+        %{<samlp:LogoutRequest ID="#{self.id}" Version="2.0" IssueInstant="#{time.rfc2822}">
+          <saml:NameID></saml:NameID>
+          <samlp:SessionIndex>#{self.name}</samlp:SessionIndex>
+          </samlp:LogoutRequest>}
+      end
+      
       def notify_logout!
         puts "LOGOUT SERVICE: #{self.service}"
         uri = URI.parse(self.service)
+        
+        if uri.host == Kosei[:yuri][:host] and uri.port == Kosei[:yuri][:port]
+          puts "ITS THE BUSHIDO APP!"
+          # TODO log the user out of the Bushido app
+          return true
+        end
+        
         uri.path = '/' if uri.path.empty?
-        time = Time.now
-
-        logout_template = %{<samlp:LogoutRequest ID="#{self.id}" Version="2.0" IssueInstant="#{time.rfc2822}">
-            <saml:NameID></saml:NameID>
-            <samlp:SessionIndex>#{self.name}</samlp:SessionIndex>
-            </samlp:LogoutRequest>}
 
         begin
-          response = Net::HTTP.post_form(uri, {'logoutRequest' => logout_template})
+          response = Net::HTTP.post_form(uri, {'logoutRequest' => self.logout_template})
           if response.kind_of? Net::HTTPSuccess
             puts "Logout notification successfully posted to #{self.service.inspect}."
-            return self.log_out!  # returns the value of the save method in log_out!
+            return self.log_out!  # returns the value of the save method in log_out
           else
             puts "Service #{self.service.inspect} responed to logout notification with code '#{response.code}'!"
             return false
@@ -59,7 +68,6 @@ module CasFuji
           return false
         end
       end
-
 
       def consumed?
         not self.consumed.nil?
