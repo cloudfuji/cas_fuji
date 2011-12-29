@@ -47,12 +47,13 @@ module CasFuji
 
 
       def notify_logout!
-        return self.logout! if self.logout_via_authenticator or self.logout_via_cas
+        return self.logout! if self.logout_via_authenticator || self.logout_via_cas
         false
       end
 
 
       def logout_via_cas
+        puts "Logging out via CAS #{self.service}"
         begin
           response = Net::HTTP.post_form(self.service_uri, {'logoutRequest' => self.logout_template})
           return true if response.kind_of? Net::HTTPSuccess
