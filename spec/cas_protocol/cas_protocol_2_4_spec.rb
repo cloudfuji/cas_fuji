@@ -29,7 +29,12 @@ describe 'CasProtocol 2.4 /validate' do
     @client_hostname = "Bushido.local"
     @test_authenticator = "CasFuji::Authenticators::TestAuth"
 
-    st = CasFuji::Models::ServiceTicket.generate(@test_authenticator, @valid_service_target, @valid_permanent_id, @client_hostname)
+    tgt = CasFuji::Models::TicketGrantingTicket.generate(
+      @client_hostname,
+      @test_authenticator,
+      @valid_permanent_id)
+    
+    st = CasFuji::Models::ServiceTicket.generate(@test_authenticator, @valid_service_target, @valid_permanent_id, @client_hostname, tgt.id)
 
     @valid_service_ticket = st.name
 

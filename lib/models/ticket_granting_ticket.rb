@@ -6,6 +6,8 @@ module CasFuji
       set_table_name "casfuji_tgt"
       has_many :service_tickets
 
+      attr_accessor :authenticator
+      
       validates_format_of      :name, :with => /\ATGT-[\w|\-]+\Z/
       # This should be used, but it's causing problem with the db locally
       # validates_uniqueness_of  :name
@@ -16,6 +18,7 @@ module CasFuji
       end
 
       def self.generate(client_hostname, authenticator, permanent_id)
+        puts authenticator
         self.create(:name            => unique_ticket_name("TGT"),
                     :permanent_id    => permanent_id,
                     :authenticator   => authenticator,

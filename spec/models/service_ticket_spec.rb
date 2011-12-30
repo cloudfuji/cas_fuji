@@ -8,11 +8,16 @@ describe "ServiceTicket" do
     @client_hostname    = "Bushido.local"
     @test_authenticator = "CasFuji::Authenticators::TestAuth"
 
+    @tgt = CasFuji::Models::TicketGrantingTicket.generate(
+      @client_hostname,
+      @test_authenticator,
+      @valid_permanent_id)
+    
     @service_ticket = CasFuji::Models::ServiceTicket.generate(
       @test_authenticator,
       @valid_service,
       @valid_permanent_id,
-      @client_hostname)
+      @client_hostname, @tgt.id)
   end
 
   describe "Default values" do
@@ -28,7 +33,8 @@ describe "ServiceTicket" do
           @test_authenticator,
           @valid_service,
           @valid_permanent_id,
-          @client_hostname)
+          @client_hostname,
+          @tgt.id)
       }.to change(CasFuji::Models::ServiceTicket, :count).by(1)
     end
 
@@ -47,7 +53,8 @@ describe "ServiceTicket" do
         @test_authenticator,
         @valid_service,
         @valid_permanent_id,
-        @client_hostname)
+        @client_hostname,
+        @tgt.id)
       st.consume!
 
       st.consumed?.should be_true
