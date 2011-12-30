@@ -18,7 +18,6 @@ module CasFuji
       end
 
       def self.generate(client_hostname, authenticator, permanent_id)
-        puts authenticator
         self.create(:name            => unique_ticket_name("TGT"),
                     :permanent_id    => permanent_id,
                     :authenticator   => authenticator,
