@@ -1,6 +1,8 @@
 :base: &base
   :sinatra_settings:
     :show_exceptions: <%= not ENV['RACK_ENV'] == 'production' %>
+  :rack:
+    :mount_url: '/cas'
   :templates:
     :path: lib/views
     :error_500_html: lib/views/500.html
@@ -33,6 +35,8 @@
 
 test:
   <<: *base
+  :rack:
+    :mount_url: '/'
   :database:
     adapter: postgresql
     database: cas_fuji_test
