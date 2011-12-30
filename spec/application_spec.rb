@@ -111,11 +111,23 @@ describe CasFuji do
 
     context 'valid_ticket?' do
       before(:each) do
+        authenticator   = "CasFuji::Authenticators::TestAuth"
+        service_url     = CGI.escape('http://casfuji.gobushido.com/users/service')
+        client_hostname = '127.0.0.1'
+        valid_permanent_id = "permanent-id"
+
+        tgt = ::CasFuji::Models::TicketGrantingTicket.generate(
+          client_hostname,
+          authenticator,
+          valid_permanent_id)
+          
         @valid_ticket = ::CasFuji::Models::ServiceTicket.generate(
-                                              "CasFuji::Authenticators::TestAuth",
-                                               CGI.escape('http://casfuji.gobushido.com/users/service'),
-                                               'permanent-id',
-                                               '127.0.0.1')
+          authenticator,
+          service_url,
+          valid_permanent_id,
+          client_hostname,
+          tgt.id)
+
       end
 
       it 'should return false if ticket it nill' do

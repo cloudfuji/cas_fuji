@@ -4,7 +4,10 @@ module CasFuji
     class TicketGrantingTicket < CasFuji::Models::BaseTicket
       # begins with "TGT-"
       set_table_name "casfuji_tgt"
+      has_many :service_tickets
 
+      attr_accessor :authenticator
+      
       validates_format_of      :name, :with => /\ATGT-[\w|\-]+\Z/
       # This should be used, but it's causing problem with the db locally
       # validates_uniqueness_of  :name

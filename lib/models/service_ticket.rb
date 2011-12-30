@@ -7,14 +7,18 @@ module CasFuji
       # up to 32 characters, but it's RECOMMENDED they
       # accept up to 256 characters
       set_table_name "casfuji_st"
+      belongs_to :ticket_granting_ticket
 
-      def self.generate(authenticator, service, permanent_id, client_hostname)
+      attr_accessor :ticket_granting_ticket_id, :logged_out
+
+      def self.generate(authenticator, service, permanent_id, client_hostname, ticket_granting_ticket_id)
         CasFuji::Models::ServiceTicket.create(
           :authenticator   => authenticator,
           :name            => unique_ticket_name("ST"),
           :permanent_id    => permanent_id,
           :service         => service,
-          :client_hostname => client_hostname)
+          :client_hostname => client_hostname,
+          :ticket_granting_ticket_id => ticket_granting_ticket_id)
       end
 
       def self.validate_ticket(service_url, ticket_name)
@@ -30,12 +34,40 @@ module CasFuji
       end
 
 
-      def consumed?
-        not self.consumed.nil?
+      def logout_template
+        time = Time.now
+        %{<samlp:LogoutRequest ID="#{self.id}" Version="2.0" IssueInstant="#{time.rfc2822}">
+          <saml:NameID></saml:NameID>
+          <samlp:SessionIndex>#{self.name}</samlp:SessionIndex>
+          </samlp:LogoutRequest>}
       end
 
-      def not_consumed?
-        !self.consumed?
+
+      def logout_via_authenticator
+        authenticator_klass = self.authenticator.constantize
+        return authenticator_klass.logout!(self) if authenticator_klass.respond_to? :logout!
+        false
+      end
+
+
+      def notify_logout!
+        return self.logout! if self.logout_via_authenticator || self.logout_via_cas
+        false
+      end
+
+
+      def logout_via_cas
+        begin
+          response = Net::HTTP.post_form(self.service_uri, {'logoutRequest' => self.logout_template})
+          return response.kind_of?(Net::HTTPSuccess)
+        rescue Exception => e
+          puts "Failed to send logout notification to service #{self.service.inspect} due to #{e}"
+          return false
+        end
+      end
+
+      def consumed?
+        not self.consumed.nil?
       end
 
       def service_url
@@ -48,6 +80,17 @@ module CasFuji
 
       def ticket_valid?
         self.consumed? == false
+      end
+
+      def service_uri
+        uri = URI.parse(self.service)
+        uri.path = '/' if uri.path.empty?
+        return uri
+      end
+
+      def logout!
+        self.logged_out = true
+        self.save
       end
 
     end
