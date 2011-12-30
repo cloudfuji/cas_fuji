@@ -9,7 +9,7 @@ module CasFuji
       set_table_name "casfuji_st"
       belongs_to :ticket_granting_ticket
 
-      attr_accessor :ticket_granting_ticket_id
+      attr_accessor :ticket_granting_ticket_id, :logged_out
 
       def self.generate(authenticator, service, permanent_id, client_hostname, ticket_granting_ticket_id)
         CasFuji::Models::ServiceTicket.create(
@@ -57,7 +57,6 @@ module CasFuji
 
 
       def logout_via_cas
-        puts "Logging out via CAS #{self.service}"
         begin
           response = Net::HTTP.post_form(self.service_uri, {'logoutRequest' => self.logout_template})
           return true if response.kind_of? Net::HTTPSuccess
