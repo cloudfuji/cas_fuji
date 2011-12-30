@@ -59,8 +59,7 @@ module CasFuji
       def logout_via_cas
         begin
           response = Net::HTTP.post_form(self.service_uri, {'logoutRequest' => self.logout_template})
-          return true if response.kind_of? Net::HTTPSuccess
-          return false
+          return response.kind_of?(Net::HTTPSuccess)
         rescue Exception => e
           puts "Failed to send logout notification to service #{self.service.inspect} due to #{e}"
           return false

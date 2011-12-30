@@ -190,4 +190,28 @@ describe "ServiceTicket" do
       subject.find(@service_ticket.id).should be_true
     end
   end
+
+  describe "logout_via_cas" do
+    it "should return true if the response is a success" do
+      response = Object.new
+
+      Net::HTTP.should_receive(:post_form).
+        with(@service_ticket.service_uri, {'logoutRequest' => @service_ticket.logout_template}).and_return(response)
+
+      response.should_receive(:kind_of?).and_return(true)
+      
+      @service_ticket.logout_via_cas.should be_true
+    end
+
+    it "should return false if the response is a *not* a success" do
+      response = Object.new
+
+      Net::HTTP.should_receive(:post_form).
+        with(@service_ticket.service_uri, {'logoutRequest' => @service_ticket.logout_template}).and_return(response)
+
+      response.should_receive(:kind_of?).and_return(false)
+      
+      @service_ticket.logout_via_cas.should be_false
+    end
+  end
 end
