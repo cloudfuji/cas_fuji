@@ -54,7 +54,7 @@ class CasFuji::App < Sinatra::Base
     if @errors.empty?
       # The user has successfully authenticated, save a TGT for their next visit
       name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name
-      response.set_cookie('tgt', {:value => name, :path => '/cas', :expires => 15.days.from_now})
+      response.set_cookie('tgt', {:value => name, :path => CasFuji.config[:rack][:mount_url], :expires => 15.days.from_now})
 
       # Update @tgt
       set_tgt!(name)
@@ -97,7 +97,7 @@ class CasFuji::App < Sinatra::Base
       # The user has successfully authenticated, save a TGT for their next visit
 
       name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name
-      response.set_cookie('tgt', {:value => name, :path => '/cas', :expires => 15.days.from_now})
+      response.set_cookie('tgt', {:value => name, :path => CasFuji.config[:rack][:mount_url], :expires => 15.days.from_now})
 
       # Update @tgt
       set_tgt!(name)
@@ -131,7 +131,9 @@ class CasFuji::App < Sinatra::Base
     @messages << "The application you just logged out from has provided a link it would like you to follow. Please click here to access #{CGI.unescape(params[:url])}" if params[:url]
     @messages << "You've successfully logged out!" if @messages.empty?
 
-    response.delete_cookie 'tgt'
+    # Rack has a hard time deleting out cookie right, so we manually
+    # remove the cookie value and expire the cookie here
+    response.set_cookie('tgt', {:value => '', :path => CasFuji.config[:rack][:mount_url], :expires => Time.at(0)})
 
     erb 'login.html'.to_sym
   end
