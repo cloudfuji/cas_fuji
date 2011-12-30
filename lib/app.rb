@@ -36,7 +36,7 @@ class CasFuji::App < Sinatra::Base
 
   # CAS 2.1
   get '/login' do
-    redirect_with_ticket(@service, @tgt.authenticator, @tgt.permanent_id, @client_hostname) if current_user && @service && authorize_user! && params[:warn].nil?
+    redirect_with_ticket(@service, @tgt.authenticator, @tgt.permanent_id, @client_hostname, @tgt.id) if current_user && @service && authorize_user! && params[:warn].nil?
     redirect @service if params[:gateway] and @service
     @messages << "You're already logged in!" if current_user
 
@@ -53,11 +53,11 @@ class CasFuji::App < Sinatra::Base
 
     if @errors.empty?
       # The user has successfully authenticated, save a TGT for their next visit
-      name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name
-      response.set_cookie('tgt', {:value => name, :path => '/cas', :expires => 15.days.from_now})
+      tgt = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id)
+      response.set_cookie('tgt', {:value => tgt.name, :path => '/cas', :expires => 15.days.from_now})
 
       # Update @tgt
-      set_tgt!(name)
+      set_tgt!(tgt.name)
 
       if @service && !authorize_user!
         halt(401, erb('unauthorized.html'.to_sym))
@@ -83,7 +83,7 @@ class CasFuji::App < Sinatra::Base
   # CAS 2.2
   post '/login' do
     requires_params({:username => "Username", :password => "Password", :lt => "Login ticket"})
-
+    
     # Mark the login ticket as consumed if it's a valid login ticket
     ::CasFuji::Models::LoginTicket.consume(@lt) if @lt
 
@@ -92,20 +92,19 @@ class CasFuji::App < Sinatra::Base
 
     halt(401, erb('login.html'.to_sym)) if not @errors.empty?
 
-
+    ticket_granting_ticket = nil
     if @errors.empty?
       # The user has successfully authenticated, save a TGT for their next visit
-      name = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id).name
-      response.set_cookie('tgt', {:value => name, :path => '/cas', :expires => 15.days.from_now})
+      ticket_granting_ticket = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id)
+      response.set_cookie('tgt', {:value => ticket_granting_ticket.name, :path => '/cas', :expires => 15.days.from_now})
 
       # Update @tgt
-      set_tgt!(name)
+      set_tgt!(ticket_granting_ticket.name)
 
       if @service && !authorize_user!
         halt(401, erb('unauthorized.html'.to_sym))
       end
     end
-
 
 
     # TODO refactor this. LoginTicket is being generated twice in this action
@@ -116,7 +115,7 @@ class CasFuji::App < Sinatra::Base
 
     if @service and @errors.empty?
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
-      redirect_with_ticket(@service, authenticator, permanent_id, @client_hostname)
+      redirect_with_ticket(@service, authenticator, permanent_id, @client_hostname, ticket_granting_ticket.id)
     end
 
     @messages << "Successfully logged in"
@@ -132,8 +131,7 @@ class CasFuji::App < Sinatra::Base
 
     tgt = ::CasFuji::Models::TicketGrantingTicket.find_by_name(request.cookies['tgt'])
     if tgt
-      service_tickets = CasFuji::Models::ServiceTicket.where(:permanent_id => tgt.permanent_id, :logged_out => false)
-      puts "SERVICE_TICKET COUNT: #{service_tickets.count}"
+      service_tickets = tgt.service_tickets.where(:logged_out => false)
       service_tickets.each { |service_ticket| service_ticket.notify_logout! }
     end
 
@@ -221,14 +219,21 @@ class CasFuji::App < Sinatra::Base
 
   private
 
-  def url_with_ticket(service, authenticator, permanent_id, client_hostname)
-    url = self.class.append_ticket_to_url(service, ::CasFuji::Models::ServiceTicket.generate(authenticator, service, permanent_id, client_hostname).name)
+  def url_with_ticket(service, authenticator, permanent_id, client_hostname, ticket_granting_ticket_id)
+    url = self.class.append_ticket_to_url(
+      service,
+      ::CasFuji::Models::ServiceTicket.generate(
+        authenticator,
+        service,
+        permanent_id,
+        client_hostname,
+        ticket_granting_ticket_id).name)
   end
 
 
-  def redirect_with_ticket(service, authenticator, permanent_id, client_hostname)
+  def redirect_with_ticket(service, authenticator, permanent_id, client_hostname, ticket_granting_ticket_id)
     service = CGI.unescape(service)
-    url     = url_with_ticket(service, authenticator, permanent_id, client_hostname)
+    url     = url_with_ticket(service, authenticator, permanent_id, client_hostname, ticket_granting_ticket_id)
     redirect url
   end
 

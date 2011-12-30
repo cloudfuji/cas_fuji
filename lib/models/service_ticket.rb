@@ -7,14 +7,16 @@ module CasFuji
       # up to 32 characters, but it's RECOMMENDED they
       # accept up to 256 characters
       set_table_name "casfuji_st"
+      belongs_to :ticket_granting_ticket
 
-      def self.generate(authenticator, service, permanent_id, client_hostname)
+      def self.generate(authenticator, service, permanent_id, client_hostname, ticket_granting_ticket_id)
         CasFuji::Models::ServiceTicket.create(
           :authenticator   => authenticator,
           :name            => unique_ticket_name("ST"),
           :permanent_id    => permanent_id,
           :service         => service,
-          :client_hostname => client_hostname)
+          :client_hostname => client_hostname,
+          :ticket_granting_ticket_id => ticket_granting_ticket_id)
       end
 
       def self.validate_ticket(service_url, ticket_name)
