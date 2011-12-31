@@ -58,7 +58,7 @@ class CasFuji::App < Sinatra::Base
 
       # Update @tgt
       set_tgt!(ticket_granting_ticket.name)
-
+      
       if @service && !authorize_user!
         halt(401, erb('unauthorized.html'.to_sym))
       end
@@ -131,8 +131,10 @@ class CasFuji::App < Sinatra::Base
 
     ticket_granting_ticket = ::CasFuji::Models::TicketGrantingTicket.find_by_name(request.cookies['tgt'])
     if ticket_granting_ticket
-      service_tickets = ticket_granting_ticket.service_tickets.where(:logged_out => false)
-      service_tickets.each { |service_ticket| service_ticket.notify_logout! }
+      service_tickets = ::CasFuji::Models::ServiceTicket.where("ticket_granting_ticket_id = ? and logged_out = ?", ticket_granting_ticket.id, false).all
+      service_tickets.each do |service_ticket|
+        service_ticket.notify_logout!
+      end
     end
 
     # Rack has a hard time deleting out cookie right, so we manually
