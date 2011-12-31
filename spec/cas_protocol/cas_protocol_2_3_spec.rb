@@ -36,6 +36,8 @@ describe 'CasProtocol 2.3 /logout' do
 
     post '/login', {:username => @valid_username, :password => @valid_password, :lt => CasFuji::Models::LoginTicket.generate(@client_hostname).name}
     rack_mock_session.cookie_jar["tgt"].should =~ /\ATGT-[a-zA-Z0-9\-]+\Z/
+
+    Net::HTTP.stub!(:post_form).and_return(Object.new)
   end
 
   context '2.3 action ' do
@@ -51,7 +53,6 @@ describe 'CasProtocol 2.3 /logout' do
 
       get '/logout'
       rack_mock_session.cookie_jar["tgt"].should be_blank
-
       get '/login'
       response.body.should include("please login")
     end
