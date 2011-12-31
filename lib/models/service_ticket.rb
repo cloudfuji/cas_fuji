@@ -9,8 +9,8 @@ module CasFuji
       set_table_name "casfuji_st"
       belongs_to :ticket_granting_ticket
 
-      attr_accessor :ticket_granting_ticket_id, :logged_out
-
+      attr_accessible :name, :authenticator, :permanent_id, :service, :client_hostname, :ticket_granting_ticket_id
+      
       def self.generate(authenticator, service, permanent_id, client_hostname, ticket_granting_ticket_id)
         CasFuji::Models::ServiceTicket.create(
           :authenticator   => authenticator,
