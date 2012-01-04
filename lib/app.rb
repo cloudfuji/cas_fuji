@@ -53,12 +53,12 @@ class CasFuji::App < Sinatra::Base
 
     if @errors.empty?
       # The user has successfully authenticated, save a TGT for their next visit
-      tgt = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id)
-      response.set_cookie('tgt', {:value => tgt.name, :path => '/cas', :expires => 15.days.from_now})
+      ticket_granting_ticket = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id)
+      response.set_cookie('tgt', {:value => ticket_granting_ticket.name, :path => CasFuji.config[:rack][:mount_url], :expires => 15.days.from_now})
 
       # Update @tgt
-      set_tgt!(tgt.name)
-
+      set_tgt!(ticket_granting_ticket.name)
+      
       if @service && !authorize_user!
         halt(401, erb('unauthorized.html'.to_sym))
       end
@@ -96,7 +96,7 @@ class CasFuji::App < Sinatra::Base
     if @errors.empty?
       # The user has successfully authenticated, save a TGT for their next visit
       ticket_granting_ticket = CasFuji::Models::TicketGrantingTicket.generate(@client_hostname, authenticator, permanent_id)
-      response.set_cookie('tgt', {:value => ticket_granting_ticket.name, :path => '/cas', :expires => 15.days.from_now})
+      response.set_cookie('tgt', {:value => ticket_granting_ticket.name, :path => CasFuji.config[:rack][:mount_url], :expires => 15.days.from_now})
 
       # Update @tgt
       set_tgt!(ticket_granting_ticket.name)
@@ -129,13 +129,17 @@ class CasFuji::App < Sinatra::Base
     @messages << "The application you just logged out from has provided a link it would like you to follow. Please click here to access #{CGI.unescape(params[:url])}" if params[:url]
     @messages << "You've successfully logged out!" if @messages.empty?
 
-    tgt = ::CasFuji::Models::TicketGrantingTicket.find_by_name(request.cookies['tgt'])
-    if tgt
-      service_tickets = tgt.service_tickets.where(:logged_out => false)
-      service_tickets.each { |service_ticket| service_ticket.notify_logout! }
+    ticket_granting_ticket = ::CasFuji::Models::TicketGrantingTicket.find_by_name(request.cookies['tgt'])
+    if ticket_granting_ticket
+      service_tickets = ::CasFuji::Models::ServiceTicket.where("ticket_granting_ticket_id = ? and logged_out = ?", ticket_granting_ticket.id, false).all
+      service_tickets.each do |service_ticket|
+        service_ticket.notify_logout!
+      end
     end
 
-    response.delete_cookie 'tgt'
+    # Rack has a hard time deleting out cookie right, so we manually
+    # remove the cookie value and expire the cookie here
+    response.set_cookie('tgt', {:value => '', :path => CasFuji.config[:rack][:mount_url], :expires => Time.at(0)})
 
     erb 'login.html'.to_sym
   end

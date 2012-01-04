@@ -18,24 +18,26 @@ describe 'CasProtocol 2.3 /logout' do
   before(:each) do
     clear_cookies
 
-    @session = {:user => 123}
-    @no_session = {}
-    @valid_service_target = CGI.escape('http://target-service.com/service_url')
-    @valid_service_uri    = Addressable::URI.parse('http://target-service.com/service_url')
-    @valid_username = "test_username"
-    @valid_password = "test_password"
-    @valid_login_ticket = "test_login_ticket"
+    @session                = {:user => 123}
+    @no_session             = {}
+    @valid_service_target   = CGI.escape('http://target-service.com/service_url')
+    @valid_service_uri      = Addressable::URI.parse('http://target-service.com/service_url')
+    @valid_username         = "test_username"
+    @valid_password         = "test_password"
+    @valid_login_ticket     = "test_login_ticket"
 
-    @client_hostname = "Bushido.local"
+    @client_hostname        = "Bushido.local"
 
     @invalid_service_target = nil
     @invalid_service_uri    = nil
-    @invalid_username = nil
-    @invalid_password = nil
-    @invalid_login_ticket = nil
+    @invalid_username       = nil
+    @invalid_password       = nil
+    @invalid_login_ticket   = nil
 
     post '/login', {:username => @valid_username, :password => @valid_password, :lt => CasFuji::Models::LoginTicket.generate(@client_hostname).name}
     rack_mock_session.cookie_jar["tgt"].should =~ /\ATGT-[a-zA-Z0-9\-]+\Z/
+
+    Net::HTTP.stub!(:post_form).and_return(Object.new)
   end
 
   context '2.3 action ' do
@@ -51,7 +53,6 @@ describe 'CasProtocol 2.3 /logout' do
 
       get '/logout'
       rack_mock_session.cookie_jar["tgt"].should be_blank
-
       get '/login'
       response.body.should include("please login")
     end

@@ -8,7 +8,7 @@ module CasFuji
 
       attr_accessible :name, :permanent_id, :authenticator, :client_hostname
       
-      validates_format_of      :name, :with => /\ATGT-[\w|\-]+\Z/
+      validates_format_of :name, :with => /\ATGT-[\w|\-]+\Z/
       # This should be used, but it's causing problem with the db locally
       # validates_uniqueness_of  :name
 
