@@ -130,9 +130,7 @@ class CasFuji::App < Sinatra::Base
     @messages << "You've successfully logged out!" if @messages.empty?
 
     ticket_granting_ticket = ::CasFuji::Models::TicketGrantingTicket.find_by_name(request.cookies['tgt'])
-    if ticket_granting_ticket
-      Resque.enqueue(LogoutNotifier, ticket_granting_ticket.id)
-    end
+    Resque.enqueue(LogoutNotifier, ticket_granting_ticket.id) if ticket_granting_ticket
 
     # Rack has a hard time deleting out cookie right, so we manually
     # remove the cookie value and expire the cookie here
