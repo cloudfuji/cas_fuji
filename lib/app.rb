@@ -131,10 +131,7 @@ class CasFuji::App < Sinatra::Base
 
     ticket_granting_ticket = ::CasFuji::Models::TicketGrantingTicket.find_by_name(request.cookies['tgt'])
     if ticket_granting_ticket
-      service_tickets = ::CasFuji::Models::ServiceTicket.where("ticket_granting_ticket_id = ? and logged_out = ?", ticket_granting_ticket.id, false).all
-      service_tickets.each do |service_ticket|
-        service_ticket.notify_logout!
-      end
+      Resque.enqueue(LogoutNotifier, ticket_granting_ticket.id)
     end
 
     # Rack has a hard time deleting out cookie right, so we manually

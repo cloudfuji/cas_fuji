@@ -43,7 +43,9 @@ describe 'CasProtocol 2.3 /logout' do
   context '2.3 action ' do
     it 'must destroy the ticket-granting cookie' do
       login
+      Resque.should_receive(:enqueue).with(LogoutNotifier)
       get '/logout'
+      
       rack_mock_session.cookie_jar["tgt"].should be_blank
     end
 
