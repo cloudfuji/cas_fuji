@@ -5,7 +5,6 @@ require 'builder'
 require 'uuid'
 require 'cgi'
 require 'ap'
-require 'resque'
 
 require 'active_support/core_ext/string'
 require 'active_support/memoizable'

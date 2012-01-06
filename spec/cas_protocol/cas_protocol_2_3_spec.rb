@@ -3,6 +3,11 @@ require File.expand_path("#{Dir.pwd}/spec/spec_helper")
 describe 'CasProtocol 2.3 /logout' do
   include Rack::Test::Methods
 
+  class Resque
+    def enqueue
+    end
+  end
+  
   def app
     CasFuji::App
   end
