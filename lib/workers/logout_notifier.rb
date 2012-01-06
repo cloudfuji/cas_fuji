@@ -17,7 +17,8 @@ class LogoutNotifier
     def logout(params)
       service_tickets = ::CasFuji::Models::ServiceTicket.where(
         :service      => params['service_url'],
-        :permanent_id => params['permanent_id']).all
+        :permanent_id => params['permanent_id'],
+        :logged_out   => false).all
 
       service_tickets.each do |service_ticket|
         service_ticket.notify_logout!
