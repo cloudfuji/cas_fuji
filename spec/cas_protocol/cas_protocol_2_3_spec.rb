@@ -49,7 +49,7 @@ describe 'CasProtocol 2.3 /logout' do
     it 'must destroy the ticket-granting cookie' do
       login
       get '/logout'
-      Resque.should_receive(:enqueue).with(LogoutNotifier)
+      Resque.should_receive(:enqueue)
 
       rack_mock_session.cookie_jar["tgt"].should be_blank
     end
@@ -57,14 +57,14 @@ describe 'CasProtocol 2.3 /logout' do
     it 'must queue logout notifications' do
       login
       get '/logout'
-      Resque.should_receive(:enqueue).with(LogoutNotifier)
+      Resque.should_receive(:enqueue)
     end
 
     it 'after destroying the ticket-granting cookie, subsequent requests to /login will not obtain service tickets' do
       get '/login', {:gateway => true, :service => @valid_service_target}
       last_response.should be_redirect
 
-      Resque.should_receive(:enqueue).with(LogoutNotifier)
+      Resque.should_receive(:enqueue)
       get '/logout'
       rack_mock_session.cookie_jar["tgt"].should be_blank
 
@@ -76,7 +76,7 @@ describe 'CasProtocol 2.3 /logout' do
   context '2.3.1 Parameters' do
     it 'must accept the url param' do
       url = CGI.escape("http://www.go-back.edu")
-      Resque.should_receive(:enqueue).with(LogoutNotifier)
+      Resque.should_receive(:enqueue)
       get '/logout', {:url => url}
 
       response.body.should include("The application you just logged out from has provided a link it would like you to follow. Please click here to access #{CGI.unescape(url)}")
@@ -85,7 +85,7 @@ describe 'CasProtocol 2.3 /logout' do
 
   context '2.3.2 Response' do
     it 'must display a page stating the user has been logged out' do
-      Resque.should_receive(:enqueue).with(LogoutNotifier)
+      Resque.should_receive(:enqueue)
       get '/logout'
 
       response.body.should include("You've successfully logged out")
