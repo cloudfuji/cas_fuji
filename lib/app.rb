@@ -130,12 +130,7 @@ class CasFuji::App < Sinatra::Base
     @messages << "You've successfully logged out!" if @messages.empty?
 
     ticket_granting_ticket = ::CasFuji::Models::TicketGrantingTicket.find_by_name(request.cookies['tgt'])
-    if ticket_granting_ticket
-      service_tickets = ::CasFuji::Models::ServiceTicket.where("ticket_granting_ticket_id = ? and logged_out = ?", ticket_granting_ticket.id, false).all
-      service_tickets.each do |service_ticket|
-        service_ticket.notify_logout!
-      end
-    end
+    Resque.enqueue(LogoutNotifier, ticket_granting_ticket.id) if ticket_granting_ticket
 
     # Rack has a hard time deleting out cookie right, so we manually
     # remove the cookie value and expire the cookie here
@@ -236,6 +231,7 @@ class CasFuji::App < Sinatra::Base
 
 
   def redirect_with_ticket(service, authenticator, permanent_id, client_hostname, ticket_granting_ticket_id)
+    service = CasFuji.config[:cas][:default_service_url] if service.empty?
     service = CGI.unescape(service)
     url     = url_with_ticket(service, authenticator, permanent_id, client_hostname, ticket_granting_ticket_id)
     redirect url

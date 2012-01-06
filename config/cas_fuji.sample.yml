@@ -13,6 +13,7 @@
     :ssl_cert: ./lib/misc/demo.crt
     :ssl_key: ./lib/misc/demo.key
   :cas:
+    :default_service_url: 'http://noshido.com:3000/users/service'
     :permanent_id_column: permanent_id
     :extra_attributes: [email, first_name, last_name, locale]
   :authenticators:
