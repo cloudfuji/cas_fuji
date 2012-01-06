@@ -231,6 +231,7 @@ class CasFuji::App < Sinatra::Base
 
 
   def redirect_with_ticket(service, authenticator, permanent_id, client_hostname, ticket_granting_ticket_id)
+    service = CasFuji.config[:cas][:default_service_url] if service.empty?
     service = CGI.unescape(service)
     url     = url_with_ticket(service, authenticator, permanent_id, client_hostname, ticket_granting_ticket_id)
     redirect url
