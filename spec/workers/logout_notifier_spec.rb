@@ -50,7 +50,8 @@ describe "LogoutNotifier" do
       @service_ticket_klass.should_receive(:where).
         with({
           :service      => service_url,
-          :permanent_id => permanent_id
+          :permanent_id => permanent_id,
+          :logged_out   => false
         }).and_return(query_object)
 
       3.times do |i|
