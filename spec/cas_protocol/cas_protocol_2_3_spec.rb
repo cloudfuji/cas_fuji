@@ -4,7 +4,7 @@ describe 'CasProtocol 2.3 /logout' do
   include Rack::Test::Methods
 
   class Resque
-    def enqueue
+    def self.enqueue
     end
   end
   
