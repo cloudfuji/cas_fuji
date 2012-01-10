@@ -35,5 +35,10 @@ require_relative "models/proxy_ticket"
 require_relative "models/proxy_granting_ticket"
 require_relative "models/ticket_granting_ticket"
 
+# Load resque worker
+require_relative 'workers/logout_notifier'
+
 # Load sinatra app
 require_relative 'app'
+
+

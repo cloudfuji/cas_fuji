@@ -2,4 +2,4 @@
 coverage.data
 *.db
 db/*.sqlite
-config/config.yml
+config/cas_fuji.yml
