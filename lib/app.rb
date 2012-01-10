@@ -71,7 +71,7 @@ class CasFuji::App < Sinatra::Base
     end
 
     if @service and @errors.empty?
-      @destination = url_with_ticket(@service, authenticator, permanent_id, @client_hostname)
+      @destination = url_with_ticket(@service, authenticator, permanent_id, @client_hostname, ticket_granting_ticket.id)
       halt(200, erb('invite.html'.to_sym))
     end
 
