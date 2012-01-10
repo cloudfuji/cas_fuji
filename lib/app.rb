@@ -257,7 +257,7 @@ class CasFuji::App < Sinatra::Base
   def current_user
     return nil if params[:renew] or @tgt.nil?
 
-    return self.class.extra_attributes_for(@tgt.authenticator, @tgt.permanent_id) if @tgt
+    self.class.extra_attributes_for(@tgt.authenticator, @tgt.permanent_id) if @tgt
   end
 
   def set_tgt!(ticket_name=nil)
