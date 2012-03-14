@@ -33,6 +33,7 @@ namespace :cas_fuji do
 
     desc "runs the migrations (options CAS_FUJI_CONFIG=/path/to/config.yml)"
     task :migrate do
+      require 'ap'
       ActiveRecord::Base.establish_connection(CasFuji.config[:database])
       ap ActiveRecord::Base.connection.inspect
       puts "#{File.expand_path(File.dirname(__FILE__)) + '/../db/migrate'}"

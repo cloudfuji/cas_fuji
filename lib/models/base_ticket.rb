@@ -6,6 +6,7 @@ module CasFuji
       establish_connection(CasFuji.config[:database])
 
       def self.unique_ticket_name(ticket_type)
+        require 'uuid'
         "#{ ticket_type.upcase }-#{ ::UUID.new.generate }"
       end
 

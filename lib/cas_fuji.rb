@@ -2,9 +2,9 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '.')
 
 require 'sinatra'
 require 'builder'
-require 'uuid'
+#require 'uuid'
 require 'cgi'
-require 'ap'
+#require 'ap'
 
 require 'active_support/core_ext/string'
 require 'active_support/memoizable'
