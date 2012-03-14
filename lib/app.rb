@@ -72,6 +72,7 @@ class CasFuji::App < Sinatra::Base
 
     if @service and @errors.empty?
       @destination = url_with_ticket(@service, authenticator, permanent_id, @client_hostname, ticket_granting_ticket.id)
+      @destination += "&redirect=#{params[:redirect]}" if params[:redirect]
       halt(200, erb('invite.html'.to_sym))
     end
 
@@ -228,7 +229,6 @@ class CasFuji::App < Sinatra::Base
         client_hostname,
         ticket_granting_ticket_id).name)
   end
-
 
   def redirect_with_ticket(service, authenticator, permanent_id, client_hostname, ticket_granting_ticket_id)
     service = CasFuji.config[:cas][:default_service_url] if service.empty?
