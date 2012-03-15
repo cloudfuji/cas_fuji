@@ -60,6 +60,8 @@ class CasFuji::App < Sinatra::Base
       set_tgt!(ticket_granting_ticket.name)
       
       if @service && !authorize_user!
+        notify_activity("User unauthorized to access app", "#{user.email} signed in, but unauthorized to access #{@service}")
+
         halt(401, erb('unauthorized.html'.to_sym))
       end
     end
@@ -67,10 +69,14 @@ class CasFuji::App < Sinatra::Base
     # TODO refactor this. LoginTicket is being generated twice in this action
     if not @errors.empty?
       @login_ticket_name = ::CasFuji::Models::LoginTicket.generate(@client_hostname).name
+      notify_activity("User failed to login", "Invitation token: #{@invitation_token}: #{@errors.inspect}")
+
       halt(401, erb('login.html'.to_sym))
     end
 
     if @service and @errors.empty?
+      notify_activity("User signed in (invite token)", "#{user.email} signed in for the #{user.sign_in_count.ordinalize} time, accessing #{@service}")
+
       @destination = url_with_ticket(@service, authenticator, permanent_id, @client_hostname, ticket_granting_ticket.id)
       @destination += "&redirect=#{params[:redirect]}" if params[:redirect]
       halt(200, erb('invite.html'.to_sym))
@@ -115,6 +121,8 @@ class CasFuji::App < Sinatra::Base
     end
 
     if @service and @errors.empty?
+      notify_activity("User signed in (login)", "#{user.email} signed in for the #{user.sign_in_count.ordinalize} time to access #{@service}")
+
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
       redirect_with_ticket(@service, authenticator, permanent_id, @client_hostname, ticket_granting_ticket.id)
     end
@@ -262,6 +270,22 @@ class CasFuji::App < Sinatra::Base
     ticket_name ||= request.cookies['tgt']
 
     @tgt = ::CasFuji::Models::TicketGrantingTicket.validate_ticket(ticket_name) if ticket_name
+  end
+
+  def notify_activity(title, body)
+      begin
+        user = User.find_by_email(username)
+        # hardcoded for production settings right now
+        notification         = Notification.new
+        notification.user_id = 1
+        notification.app_id  = 26250
+        notification.title   = title
+        notification.body    = body
+        notification.categor = "User Activity"
+        notification.save
+      rescue => e
+        puts "Couldn't save notification: #{e.inspect}"
+      end
   end
 
   # Initialize and massage the variables ahead of time
