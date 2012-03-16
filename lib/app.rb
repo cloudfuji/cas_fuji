@@ -61,7 +61,7 @@ class CasFuji::App < Sinatra::Base
       
       if @service && !authorize_user!
         user = User.find_by_email(@username)
-        notify_activity("User unauthorized to access app", "#{user.email} signed in, but unauthorized to access #{@service}")
+        notify_activity("User unauthorized to access app", "#{user.email} signed in, but unauthorized to access #{@service}") if user
 
         halt(401, erb('unauthorized.html'.to_sym))
       end
@@ -77,7 +77,7 @@ class CasFuji::App < Sinatra::Base
 
     if @service and @errors.empty?
       user = User.find_by_email(@username)
-      notify_activity("User signed in (invite token)", "#{user.email} signed in for the #{user.sign_in_count.ordinalize} time, accessing #{@service}")
+      notify_activity("User signed in (invite token)", "#{user.email} signed in for the #{user.sign_in_count.ordinalize} time, accessing #{@service}") if user
 
       @destination = url_with_ticket(@service, authenticator, permanent_id, @client_hostname, ticket_granting_ticket.id)
       @destination += "&redirect=#{params[:redirect]}" if params[:redirect]
@@ -124,7 +124,7 @@ class CasFuji::App < Sinatra::Base
 
     if @service and @errors.empty?
       user = User.find_by_email(@username)
-      notify_activity("User signed in (login)", "#{user.email} signed in for the #{user.sign_in_count.ordinalize} time to access #{@service}")
+      notify_activity("User signed in (login)", "#{user.email} signed in for the #{user.sign_in_count.ordinalize} time to access #{@service}") if user
 
       halt(200, erb('redirect_warn.html'.to_sym)) if params[:warn]
       redirect_with_ticket(@service, authenticator, permanent_id, @client_hostname, ticket_granting_ticket.id)
