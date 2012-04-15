@@ -84,7 +84,7 @@ describe CasFuji do
 
     context 'append_ticket_to_url' do
       it 'should take a service url and append the ticket as a param' do
-        url = "http://casfuji.gobushido.com/users/service"
+        url = "http://casfuji.cloudfuji.com/users/service"
         ticket = "service-ticket-name"
 
         result = ::Addressable::URI.parse(CasFuji::App.append_ticket_to_url(url, ticket))
@@ -112,7 +112,7 @@ describe CasFuji do
     context 'valid_ticket?' do
       before(:each) do
         authenticator   = "CasFuji::Authenticators::TestAuth"
-        service_url     = CGI.escape('http://casfuji.gobushido.com/users/service')
+        service_url     = CGI.escape('http://casfuji.cloudfuji.com/users/service')
         client_hostname = '127.0.0.1'
         valid_permanent_id = "permanent-id"
 

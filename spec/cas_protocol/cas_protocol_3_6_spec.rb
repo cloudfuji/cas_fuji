@@ -41,8 +41,8 @@ describe 'CasProtocol 3.6 Ticket-Granting Ticket' do
     @no_session = {}
     @test_authenticator = "CasFuji::Authenticators::TestAuth"
     @valid_permanent_id = "valid_permanent_id"
-    @valid_tgt = generate(model.unique_ticket_name('TGT'), 'Bushido.local', @test_authenticator, @valid_permanent_id)
-    @client_hostname = "Bushido.local"
+    @valid_tgt = generate(model.unique_ticket_name('TGT'), 'Cloudfuji.local', @test_authenticator, @valid_permanent_id)
+    @client_hostname = "Cloudfuji.local"
   end
 
   context 'in general' do

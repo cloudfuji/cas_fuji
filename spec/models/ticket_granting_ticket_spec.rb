@@ -35,7 +35,7 @@ describe "TicketGrantingTicket" do
   describe "generate" do
     it "should generate new TicketGrantingTicket" do
       valid_permanent_id = "test_pid"
-      client_hostname    = "Bushido.local"
+      client_hostname    = "Cloudfuji.local"
       test_authenticator = "CasFuji::Authenticators::TestAuth"
 
       expect {

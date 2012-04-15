@@ -314,17 +314,17 @@ class CasFuji::App < Sinatra::Base
   end
 
   def flash
-    signed_message = request.cookies['_bushido_session']
+    signed_message = request.cookies['_cloudfuji_session']
     
     if signed_message.present?
-      secret = Bushido::Application.config.secret_token
+      secret = Cloudfuji::Application.config.secret_token
       verifier = ActiveSupport::MessageVerifier.new(secret)
       session = verifier.verify(signed_message)
 
       flash = session.delete('flash')
       
       signed_message = verifier.generate(session)
-      response.set_cookie('_bushido_session', :value => signed_message, :path => '/')
+      response.set_cookie('_cloudfuji_session', :value => signed_message, :path => '/')
       return flash
     end
   end

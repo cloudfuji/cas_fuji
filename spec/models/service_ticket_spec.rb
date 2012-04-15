@@ -7,7 +7,7 @@ describe "ServiceTicket" do
   before :each do
     @valid_service      = "http://target-service.com/service_url"
     @valid_permanent_id = "test_pid"
-    @client_hostname    = "Bushido.local"
+    @client_hostname    = "Cloudfuji.local"
     @test_authenticator = "CasFuji::Authenticators::TestAuth"
 
     @tgt = CasFuji::Models::TicketGrantingTicket.generate(

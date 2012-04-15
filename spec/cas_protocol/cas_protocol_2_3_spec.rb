@@ -31,7 +31,7 @@ describe 'CasProtocol 2.3 /logout' do
     @valid_password         = "test_password"
     @valid_login_ticket     = "test_login_ticket"
 
-    @client_hostname        = "Bushido.local"
+    @client_hostname        = "Cloudfuji.local"
 
     @invalid_service_target = nil
     @invalid_service_uri    = nil

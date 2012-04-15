@@ -26,7 +26,7 @@ describe 'CasProtocol 2.4 /validate' do
     @valid_username = "valid_username"
     @valid_password = "valid_password"
     @valid_login_ticket = "test_login_ticket"
-    @client_hostname = "Bushido.local"
+    @client_hostname = "Cloudfuji.local"
     @test_authenticator = "CasFuji::Authenticators::TestAuth"
 
     tgt = CasFuji::Models::TicketGrantingTicket.generate(

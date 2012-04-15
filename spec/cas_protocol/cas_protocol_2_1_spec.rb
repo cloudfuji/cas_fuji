@@ -24,7 +24,7 @@ describe 'CasProtocol 2.1 /login as a credential requestor [GET]' do
     @valid_service_target = CGI.escape('http://target-service.com/service_url')
     @valid_username = "test_username"
     @valid_password = "test_password"
-    @client_hostname = "Bushido.local"
+    @client_hostname = "Cloudfuji.local"
   end
 
   context 'in general' do

@@ -1,6 +1,6 @@
 CasFuji
 =======
-Bushido's Implementation of the CAS server protocol
+Cloudfuji's Implementation of the CAS server protocol
 
 TODO
 ====
@@ -45,7 +45,7 @@ Making Your Changes
 Authors
 =======
 
-  * [Sean Grove](https://github.com/sgrove) (sean@gobushido.com)
+  * [Sean Grove](https://github.com/sgrove) (sean@cloudfuji.com)
   * [Akash Manohar](https://github.com/HashNuke) (akash@akash.im)
 
 Thanks
